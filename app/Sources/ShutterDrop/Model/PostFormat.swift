@@ -57,6 +57,11 @@ enum PostFormat {
         dateFormatter.string(from: date)
     }
 
+    /// Reads "March 1, 2025" back into a date.
+    static func parseDate(_ text: String) -> Date? {
+        dateFormatter.date(from: text.trimmed)
+    }
+
     private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")

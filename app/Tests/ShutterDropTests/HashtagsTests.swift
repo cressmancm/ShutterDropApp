@@ -1,0 +1,117 @@
+import Foundation
+import Testing
+@testable import ShutterDrop
+
+@Suite("Hashtags")
+struct HashtagsTests {
+    @Test("Pasted text is cut down to its #tags, without repeats")
+    func clean() {
+        let pasted = """
+            Top hashtags for puerto vallarta:
+            #puertovallarta #PuertoVallarta #mexico
+            #zonaromantica, #vallarta_life (1.2M posts)
+            """
+        #expect(Hashtags.clean(pasted) == "#puertovallarta #mexico #zonaromantica #vallarta_life")
+    }
+
+    @Test("Tags keep accented letters")
+    func accents() {
+        #expect(Hashtags.extract(from: "#méxico #café") == ["#méxico", "#café"])
+    }
+
+    @Test("Adding skips tags already there")
+    func adding() {
+        #expect(Hashtags.adding(["#mexico", "#puertovallarta"], to: "#puertovallarta") == "#puertovallarta #mexico")
+    }
+
+    @Test("Place names become tags without accents or spaces")
+    func tagFromPhrase() {
+        #expect(Hashtags.tag(from: "Zona Romántica") == "#zonaromantica")
+        #expect(Hashtags.tag(from: "NIKON Z 8") == "#nikonz8")
+        #expect(Hashtags.tag(from: "LA") == nil)
+    }
+
+    @Test("Suggestions come from the place, the camera and past posts, minus what's there")
+    func suggestions() {
+        let suggestions = Hashtags.suggestions(
+            location: "Zona Romántica, Puerto Vallarta, Jal.",
+            camera: "NIKON Z 8",
+            current: "#zonaromantica",
+            history: ["#birds #mexico", "#mexico #sunset", "#mexico"]
+        )
+        #expect(suggestions == ["#puertovallarta", "#nikonz8", "#mexico", "#birds", "#sunset"])
+    }
+
+    @Test("The search term is the place, else Vision's top label")
+    func searchTerm() {
+        #expect(Hashtags.searchTerm(location: "Zona Romántica, Puerto Vallarta, Jal.", sceneLabels: ["beach"]) == "zonaromantica")
+        #expect(Hashtags.searchTerm(location: "", sceneLabels: ["sunset sky", "water"]) == "sunsetsky")
+        #expect(Hashtags.searchTerm(location: "", sceneLabels: []) == "")
+    }
+
+    @Test("The search page fills in {query}")
+    func searchURL() {
+        #expect(Hashtags.searchURL(site: AppSettings.defaultHashtagSearchSite, term: "#puertovallarta")?.absoluteString == "https://best-hashtags.com/hashtag/puertovallarta/")
+        #expect(Hashtags.searchURL(site: "https://example.com/search?q={query}", term: "puerto vallarta")?.absoluteString == "https://example.com/search?q=puerto%20vallarta")
+        #expect(Hashtags.searchURL(site: "javascript:{query}", term: "x") == nil)
+        #expect(Hashtags.searchURL(site: AppSettings.defaultHashtagSearchSite, term: "  ") == nil)
+    }
+}
+
+@Suite("Place names")
+struct LocationNamerTests {
+    @Test("An area of interest comes first")
+    func areaOfInterest() {
+        let name = LocationNamer.compose(.init(areasOfInterest: ["Malecón"], nearbyLandmark: "Los Arcos", neighborhood: "Centro", cityWithContext: "Puerto Vallarta, Jal."))
+        #expect(name == "Malecón, Puerto Vallarta, Jal.")
+    }
+
+    @Test("Then a nearby landmark, then the neighborhood")
+    func fallbacks() {
+        #expect(LocationNamer.compose(.init(nearbyLandmark: "Los Arcos", neighborhood: "Centro", cityWithContext: "Puerto Vallarta, Jal.")) == "Los Arcos, Puerto Vallarta, Jal.")
+        #expect(LocationNamer.compose(.init(neighborhood: "Zona Romántica", cityWithContext: "Puerto Vallarta, Jal.")) == "Zona Romántica, Puerto Vallarta, Jal.")
+    }
+
+    @Test("With nothing better, the city alone")
+    func cityOnly() {
+        #expect(LocationNamer.compose(.init(cityWithContext: "Seattle, WA")) == "Seattle, WA")
+        #expect(LocationNamer.compose(.init()) == nil)
+    }
+
+    @Test("A place that's just the city isn't repeated")
+    func noRepeat() {
+        #expect(LocationNamer.compose(.init(neighborhood: "Seattle", cityWithContext: "Seattle, WA")) == "Seattle, WA")
+    }
+}
+
+@Suite("CSV import")
+struct CSVImporterTests {
+    @Test("Quoted fields keep commas, line breaks and quotes")
+    func parse() {
+        let csv = "A,B,C\r\n1,\"two, too\",\"line one\nline \"\"two\"\"\"\r\n"
+        #expect(CSVImporter.parse(csv) == [["A", "B", "C"], ["1", "two, too", "line one\nline \"two\""]])
+    }
+
+    @Test("Rows map from the old sheet's headers")
+    func rows() throws {
+        let csv = """
+            Photo,Filename,Caption,Location,Camera,Exposure,Date Taken,Hashtags,Full Post,Posted,Alt Text,Publish Season,Why This Season
+            ,DSC_0001.NEF,Golden hour,"Zona Romántica, Puerto Vallarta, Jal.",NIKON Z 8 with NIKKOR Z 180-600mm f/5.6-6.3 VR,125 ISO | 340 mm | f/6 | 1/125 s,"March 1, 2025",#puertovallarta #zonaromantica,"Golden hour
+
+            📍 Zona Romántica",TRUE,Rooftops at sunset.,Spring 2026,Capture date
+            """
+        let rows = try CSVImporter.rows(from: csv)
+        #expect(rows.count == 1)
+        let row = try #require(rows.first)
+        #expect(row.filename == "DSC_0001.NEF")
+        #expect(row.location == "Zona Romántica, Puerto Vallarta, Jal.")
+        #expect(row.posted)
+        #expect(row.hashtags == "#puertovallarta #zonaromantica")
+        #expect(row.date == PostFormat.parseDate("March 1, 2025"))
+    }
+
+    @Test("A file without a Filename column is refused")
+    func wrongFile() {
+        #expect(throws: CSVImporter.ImportError.self) { try CSVImporter.rows(from: "Name,Price\nTea,4") }
+    }
+}

@@ -52,6 +52,12 @@ final class Post {
     /// Vision's top scene labels, for the hashtag search term.
     var sceneLabels: [String]
 
+    /// For a photo chosen with the picker: the copy ShutterDrop keeps, since it
+    /// can't read the photo from the library later.
+    var localImageName: String?
+    /// When the photo's details, place name and alt text were filled in.
+    var processedAt: Date?
+
     var source: Source {
         get { Source(rawValue: sourceRaw) ?? .album }
         set { sourceRaw = newValue.rawValue }
@@ -87,6 +93,8 @@ final class Post {
         self.latitude = nil
         self.longitude = nil
         self.sceneLabels = []
+        self.localImageName = nil
+        self.processedAt = nil
     }
 }
 
@@ -117,5 +125,23 @@ extension Post {
     func setPosted(_ posted: Bool, at date: Date = .now) {
         isPosted = posted
         postedAt = posted ? date : nil
+    }
+
+    /// Fills in what was read from the photo, formatted the way posts show it.
+    func apply(_ details: PhotoDetails) {
+        cameraModel = details.cameraModel
+        lensModel = details.lensModel
+        cameraLine = PostFormat.cameraLine(model: details.cameraModel, lens: details.lensModel)
+        iso = PostFormat.iso(details.iso)
+        focalLength = PostFormat.focalLength(details.focalLength)
+        aperture = PostFormat.aperture(details.aperture)
+        shutter = PostFormat.shutter(details.shutter)
+        exposure = PostFormat.exposure(iso: iso, focalLength: focalLength, aperture: aperture, shutter: shutter)
+        if let taken = details.dateTaken {
+            dateTaken = taken
+            dateText = PostFormat.date(taken)
+        }
+        latitude = details.latitude
+        longitude = details.longitude
     }
 }
