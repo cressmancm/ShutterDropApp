@@ -1,0 +1,4 @@
+// Copy to Signing.local.xcconfig (git ignores it) and put in your team ID,
+// from developer.apple.com → Account → Membership details. Xcode signs with
+// your Apple Development certificate and makes the provisioning profile itself.
+DEVELOPMENT_TEAM = YOUR_TEAM_ID

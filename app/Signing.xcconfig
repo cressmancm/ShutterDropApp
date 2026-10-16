@@ -1,0 +1,10 @@
+// Code signing for builds from the Xcode project: automatic signing, set up
+// the way Xcode sets up a new iPhone app. Simulator builds need no team.
+//
+// Leave this file as it is. To run on your own iPhone, or to archive for the
+// App Store, copy Signing.local.xcconfig.example to Signing.local.xcconfig,
+// which git ignores, and put in your team ID. See CONTRIBUTING.md.
+CODE_SIGN_STYLE = Automatic
+DEVELOPMENT_TEAM =
+
+#include? "Signing.local.xcconfig"

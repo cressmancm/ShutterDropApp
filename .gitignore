@@ -1,0 +1,14 @@
+# Xcode build output and per-user state
+build/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+
+# macOS and local tool settings
+.DS_Store
+.claude/settings.local.json
+.claude/tackline/
+
+# Each developer's own signing settings for the Xcode project (see
+# app/Signing.local.xcconfig.example)
+Signing.local.xcconfig

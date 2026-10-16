@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Keys Xcode can't generate from build settings. The rest of the
+	     Info.plist comes from the INFOPLIST_KEY_ settings in the project. -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<!-- Lets Open in Instagram check that Instagram is installed. -->
+		<string>instagram</string>
+	</array>
+</dict>
+</plist>
