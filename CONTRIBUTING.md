@@ -21,6 +21,7 @@ Debug builds read these; release builds ignore them. Add them in the scheme's Ru
 | Argument | What it does |
 | --- | --- |
 | `-skipIntelligenceCheck` | Shows the app even where Apple Intelligence can't run |
+| `-intelligenceState downloading` | Shows that Apple Intelligence screen (`unsupported`, `off` or `downloading`) whatever the device says |
 | `-sampleData` | Fills an empty store with four example posts |
 | `-onboardingDone YES` | Skips onboarding (it sets the setting itself) |
 | `-startTab posted` or `-startTab settings` | Opens on that tab |
@@ -44,7 +45,7 @@ Deleting the app removes all of it.
 
 - **Onboarding again:** delete the app, or launch with `-onboardingDone NO`.
 - **The photo prompt again:** delete the app. In the simulator, if the prompt keeps reappearing after a fresh install, erase the simulator (Device › Erase All Content and Settings); its permission state can outlive the app.
-- **The Apple Intelligence screens:** on a real iPhone, turn Apple Intelligence off in Settings to see the "Turn On" screen. The "isn't supported" and "Getting Ready" screens need an older iPhone or a fresh one still downloading the model.
+- **The Apple Intelligence screens:** on a real iPhone, turn Apple Intelligence off in Settings to see the "Turn On" screen. To see any of the three screens in the simulator, launch with `-intelligenceState unsupported`, `off` or `downloading`.
 - **Album sync:** add or remove photos from the ShutterDrop album in Photos, then bring ShutterDrop to the front or pull down on the queue.
 - **Import:** export ShutterDrop.numbers as CSV (File › Export To › CSV in Numbers), put it in iCloud Drive, and use Settings › Import from CSV. Rows match photos by filename and date taken.
 - **Open in Instagram:** needs a real iPhone with Instagram installed. Without Instagram, the share sheet opens instead.

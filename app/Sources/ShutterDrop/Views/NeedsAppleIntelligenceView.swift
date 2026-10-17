@@ -27,12 +27,16 @@ struct NeedsAppleIntelligenceView: View {
                     .buttonStyle(.bordered)
                 }
             case .downloading, .ready:
+                // The download is the iPhone's, not ShutterDrop's, so no
+                // progress indicator: ShutterDrop can't show or speed it up.
                 ContentUnavailableView {
-                    ProgressView()
-                        .controlSize(.large)
-                    Text("Getting Ready")
+                    VStack(spacing: 16) {
+                        AppLogo()
+                        Text("Waiting for Apple Intelligence")
+                            .font(.title2.bold())
+                    }
                 } description: {
-                    Text("Apple Intelligence is still downloading to this iPhone. ShutterDrop will open on its own when it's ready.")
+                    Text("Your iPhone is still downloading Apple Intelligence. ShutterDrop opens on its own once that's done.\n\nYou can check on it in Settings › Apple Intelligence & Siri.")
                 }
             }
         }

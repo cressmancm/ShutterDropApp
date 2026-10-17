@@ -155,11 +155,15 @@ private struct Header: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Image(systemName: systemImage)
-                .font(.system(size: large ? 52 : 40, weight: .light))
-                .foregroundStyle(Palette.accent)
-                .frame(width: large ? 96 : 80, height: large ? 96 : 80)
-                .background(large ? Palette.surface : Palette.accent.opacity(0.16), in: .rect(cornerRadius: large ? 22 : 20))
+            if large {
+                AppLogo()
+            } else {
+                Image(systemName: systemImage)
+                    .font(.system(size: 40, weight: .light))
+                    .foregroundStyle(Palette.accent)
+                    .frame(width: 80, height: 80)
+                    .background(Palette.accent.opacity(0.16), in: .rect(cornerRadius: 20))
+            }
             Text(title)
                 .font(large ? .largeTitle.bold() : .title.bold())
             Text(message)

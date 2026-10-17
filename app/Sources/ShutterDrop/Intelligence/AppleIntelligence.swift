@@ -12,7 +12,8 @@ enum AppleIntelligence: Equatable {
     case downloading
 
     static var current: AppleIntelligence {
-        switch SystemLanguageModel.default.availability {
+        if let forced = DebugOptions.intelligenceState { return forced }
+        return switch SystemLanguageModel.default.availability {
         case .available:
             .ready
         case .unavailable(.deviceNotEligible):

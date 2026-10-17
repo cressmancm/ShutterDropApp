@@ -33,3 +33,16 @@ extension Color {
     }
 }
 
+
+/// ShutterDrop's mark: a saffron aperture on a graphite tile. Stands in for
+/// the logo wherever the app introduces itself.
+struct AppLogo: View {
+    var body: some View {
+        Image(systemName: "camera.aperture")
+            .font(.system(size: 52, weight: .light))
+            .foregroundStyle(Palette.accent)
+            .frame(width: 96, height: 96)
+            .background(Palette.surface, in: .rect(cornerRadius: 22))
+            .accessibilityHidden(true)
+    }
+}

@@ -14,6 +14,21 @@ enum DebugOptions {
         #endif
     }
 
+    /// `-intelligenceState unsupported|off|downloading`: show that
+    /// requirement screen whatever the device says.
+    static var intelligenceState: AppleIntelligence? {
+        #if DEBUG
+        switch UserDefaults.standard.string(forKey: "intelligenceState") {
+        case "unsupported": .unsupportedDevice
+        case "off": .turnedOff
+        case "downloading": .downloading
+        default: nil
+        }
+        #else
+        nil
+        #endif
+    }
+
     /// `-sampleData`: fill an empty queue with example posts.
     static var sampleData: Bool {
         #if DEBUG
