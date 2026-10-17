@@ -6,6 +6,9 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var context
     @Environment(Intake.self) private var intake
     @AppStorage(AppSettings.locationLookups) private var lookups = true
+    @AppStorage(AppSettings.altTextGeneration) private var writesAltText = true
+    @Environment(\.appleIntelligence) private var intelligence
+    @Environment(\.openURL) private var openURL
     @AppStorage(AppSettings.hashtagSearchSite) private var searchSite = AppSettings.defaultHashtagSearchSite
     @State private var importing = false
     @State private var importResult: CSVImporter.Result?
@@ -30,6 +33,26 @@ struct SettingsView: View {
                     Text("Location")
                 } footer: {
                     Text("Sends each photo's location to Apple to find place names. When off, Location stays empty unless you type one.")
+                }
+
+                Section {
+                    Toggle("Write Alt Text with Apple Intelligence", isOn: Binding(
+                        get: { writesAltText && intelligence.isSupported },
+                        set: { writesAltText = $0 }
+                    ))
+                    .disabled(!intelligence.isSupported)
+                    if writesAltText && intelligence == .turnedOff {
+                        Button("Open Settings") {
+                            if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                        }
+                    }
+                } header: {
+                    Text("Alt Text")
+                } footer: {
+                    Text(intelligence.altTextNote(enabled: writesAltText) ?? "You write alt text yourself on each post.")
+                }
+                .onChange(of: writesAltText) { _, on in
+                    if on { Task { await intake.fillMissingAltText(in: context) } }
                 }
 
                 Section("Hashtags") {

@@ -34,12 +34,15 @@ final class PostProcessor {
         if let preview = PhotoDetailsReader.previewImage(from: data) {
             let labels = await analyzer.labels(for: preview)
             post.sceneLabels = labels.scene
-            post.altText = await analyzer.altText(for: preview, context: context(for: post, labels: labels)) ?? post.altText
+            if AppSettings.writesAltText {
+                post.altText = await analyzer.altText(for: preview, context: context(for: post, labels: labels)) ?? post.altText
+            }
         }
         post.processedAt = .now
     }
 
-    /// Writes fresh alt text for a post, for the Regenerate button.
+    /// Writes fresh alt text for a post, for the Write and Regenerate buttons
+    /// and for filling in posts that came in while it couldn't run.
     func regenerateAltText(for post: Post) async {
         guard let data = await imageData(for: post),
               let preview = PhotoDetailsReader.previewImage(from: data)

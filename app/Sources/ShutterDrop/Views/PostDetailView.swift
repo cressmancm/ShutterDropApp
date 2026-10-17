@@ -10,6 +10,8 @@ struct PostDetailView: View {
     @Environment(Intake.self) private var intake
     @AppStorage(AppSettings.postTemplate) private var template = PostTemplate.defaultText
     @AppStorage(AppSettings.hashtagSearchSite) private var searchSite = AppSettings.defaultHashtagSearchSite
+    @AppStorage(AppSettings.altTextGeneration) private var writesAltText = true
+    @Environment(\.appleIntelligence) private var intelligence
     @Query private var allPosts: [Post]
 
     @State private var copiedPost = false
@@ -64,23 +66,32 @@ struct PostDetailView: View {
 
             hashtagsSection
 
-            Section("Alt Text") {
-                TextField("Alt text", text: $post.altText, axis: .vertical)
+            Section {
+                TextField("Describe the photo for people using screen readers", text: $post.altText, axis: .vertical)
                     .lineLimit(3...8)
                     .focused($editing)
-                Button {
-                    Task {
-                        regenerating = true
-                        await intake.processor.regenerateAltText(for: post)
-                        regenerating = false
+                if writesAltText && intelligence == .ready {
+                    Button {
+                        Task {
+                            regenerating = true
+                            await intake.processor.regenerateAltText(for: post)
+                            regenerating = false
+                        }
+                    } label: {
+                        HStack {
+                            Label(post.altText.isEmpty ? "Write Alt Text" : "Regenerate Alt Text",
+                                  systemImage: post.altText.isEmpty ? "sparkles" : "arrow.clockwise")
+                            if regenerating { Spacer(); ProgressView() }
+                        }
                     }
-                } label: {
-                    HStack {
-                        Label("Regenerate Alt Text", systemImage: "arrow.clockwise")
-                        if regenerating { Spacer(); ProgressView() }
-                    }
+                    .disabled(regenerating)
                 }
-                .disabled(regenerating)
+            } header: {
+                Text("Alt Text")
+            } footer: {
+                if writesAltText && intelligence != .ready, let note = intelligence.altTextNote(enabled: true) {
+                    Text(note)
+                }
             }
             }
             .listRowBackground(Palette.surface)

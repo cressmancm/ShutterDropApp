@@ -6,7 +6,7 @@ Thanks for looking. This covers building and running ShutterDrop, the settings a
 
 - A Mac with Xcode 27 or later. [`.xcode-version`](.xcode-version) holds the minimum, and CI checks it.
 - An iPhone simulator running iOS 27. Xcode › Settings › Components installs the runtime.
-- For the parts that need real hardware (alt text quality, Open in Instagram), an iPhone 15 Pro or later on iOS 27 with Apple Intelligence on.
+- For the parts that need real hardware (alt text quality, Open in Instagram), an iPhone on iOS 27; for alt text, an iPhone 15 Pro or later with Apple Intelligence on.
 
 ## In Xcode
 
@@ -20,8 +20,8 @@ Debug builds read these; release builds ignore them. Add them in the scheme's Ru
 
 | Argument | What it does |
 | --- | --- |
-| `-skipIntelligenceCheck` | Shows the app even where Apple Intelligence can't run |
-| `-intelligenceState downloading` | Shows that Apple Intelligence screen (`unsupported`, `off` or `downloading`) whatever the device says |
+| `-intelligenceState off` | Acts as if Apple Intelligence were `ready`, `unsupported`, `off` or `downloading`, whatever the device says |
+| `-onboardingStep altText` | Starts onboarding at `photos`, `location`, `altText` or `ready` |
 | `-sampleData` | Fills an empty store with four example posts |
 | `-onboardingDone YES` | Skips onboarding (it sets the setting itself) |
 | `-startTab posted` or `-startTab settings` | Opens on that tab |
@@ -31,19 +31,19 @@ Debug builds read these; release builds ignore them. Add them in the scheme's Ru
 For example, to see the post screen with an example post:
 
 ```bash
-xcrun simctl launch booted com.chipcressman.shutterdrop -skipIntelligenceCheck -sampleData -onboardingDone YES -openFirstPost
+xcrun simctl launch booted com.chipcressman.shutterdrop -sampleData -onboardingDone YES -openFirstPost
 ```
 
 ## Debug Tools
 
 Debug builds add **Settings › Debug Tools**, for testing and reviewing without leaving the app. Release builds compile none of it in.
 
-- **Apple Intelligence:** force Ready, Not Supported, Turned Off or Downloading, or follow the device. A forced requirement screen has a Debug Tools button to come back.
-- **Preview Screens:** each Apple Intelligence screen and onboarding on its own, with a Close button. Previews change nothing; the onboarding preview doesn't ask for access or save answers.
+- **Apple Intelligence:** force Ready, Not Supported, Turned Off or Downloading, or follow the device. It changes what the Alt Text setting, the post screen and onboarding offer.
+- **Preview Onboarding:** onboarding on its own, with a Close button, as it looks in the forced state. It doesn't ask for access or save answers.
 - **Restart Onboarding:** runs the real onboarding again.
 - **Posts:** add sample posts, mark everything as not posted, read every photo again, or delete all posts to see the empty queue.
 - **Photos:** the current access, asking for it if it hasn't been asked, iOS Settings, and syncing the album now.
-- **Reset ShutterDrop's Settings:** the default template, search site and Location Lookups, and no forced state.
+- **Reset ShutterDrop's Settings:** the default template, search site, Location Lookups and alt text setting, and no forced state.
 
 ## Where ShutterDrop keeps things
 
@@ -57,7 +57,7 @@ Deleting the app removes all of it.
 
 - **Onboarding again:** delete the app, or launch with `-onboardingDone NO`.
 - **The photo prompt again:** delete the app. In the simulator, if the prompt keeps reappearing after a fresh install, erase the simulator (Device › Erase All Content and Settings); its permission state can outlive the app.
-- **The Apple Intelligence screens:** on a real iPhone, turn Apple Intelligence off in Settings to see the "Turn On" screen. To see any of the three screens in the simulator, launch with `-intelligenceState unsupported`, `off` or `downloading`.
+- **Without Apple Intelligence:** force a state in Debug Tools, or launch with `-intelligenceState unsupported`, `off` or `downloading`, then look at the onboarding Alt Text step, Settings › Alt Text and a post's Alt Text section. On a real iPhone, turning Apple Intelligence off in iOS Settings does the same for `off`.
 - **Album sync:** add or remove photos from the ShutterDrop album in Photos, then bring ShutterDrop to the front or pull down on the queue.
 - **Import:** export ShutterDrop.numbers as CSV (File › Export To › CSV in Numbers), put it in iCloud Drive, and use Settings › Import from CSV. Rows match photos by filename and date taken.
 - **Open in Instagram:** needs a real iPhone with Instagram installed. Without Instagram, the share sheet opens instead.

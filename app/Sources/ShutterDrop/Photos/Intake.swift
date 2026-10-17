@@ -11,6 +11,7 @@ final class Intake {
     let library: PhotoLibrary
     let processor: PostProcessor
     private(set) var isWorking = false
+    private(set) var isWritingAltText = false
 
     init(library: PhotoLibrary = PhotoLibrary()) {
         self.library = library
@@ -50,6 +51,7 @@ final class Intake {
         }
         try? context.save()
         await processPending(in: context)
+        await fillMissingAltText(in: context)
     }
 
     /// Adds photos chosen with the photo picker. ShutterDrop keeps its own copy
@@ -96,6 +98,21 @@ final class Intake {
         let pending = FetchDescriptor<Post>(predicate: #Predicate { $0.processedAt == nil && $0.sourceRaw != "imported" })
         for post in (try? context.fetch(pending)) ?? [] {
             await processor.process(post)
+            try? context.save()
+        }
+    }
+
+    /// Writes alt text for queued posts that don't have any, when the user
+    /// wants it and Apple Intelligence can run: after turning the setting on,
+    /// or once Apple Intelligence finishes downloading or is turned on.
+    func fillMissingAltText(in context: ModelContext) async {
+        guard AppSettings.writesAltText, !isWritingAltText else { return }
+        isWritingAltText = true
+        defer { isWritingAltText = false }
+        let missing = FetchDescriptor<Post>(predicate: #Predicate { !$0.isPosted && $0.processedAt != nil && $0.altText == "" })
+        for post in (try? context.fetch(missing)) ?? [] {
+            guard AppSettings.writesAltText else { break }
+            await processor.regenerateAltText(for: post)
             try? context.save()
         }
     }

@@ -1,18 +1,32 @@
 import SwiftData
 import SwiftUI
 
-/// First launch: what ShutterDrop does, then photo access and Location Lookups,
-/// each asked for when it's explained.
+/// First launch: what ShutterDrop does, then photo access, Location Lookups
+/// and alt text, each asked for when it's explained.
 struct OnboardingView: View {
     enum Step: Int, CaseIterable {
-        case welcome, photos, location, ready
+        case welcome, photos, location, altText, ready
+
+        /// The step a Debug build's `-onboardingStep` names, or the start.
+        static var initial: Step {
+            switch DebugOptions.onboardingStep {
+            case "photos": .photos
+            case "location": .location
+            case "altText": .altText
+            case "ready": .ready
+            default: .welcome
+            }
+        }
     }
 
     @Environment(\.modelContext) private var context
     @Environment(Intake.self) private var intake
     @AppStorage(AppSettings.onboardingDone) private var onboardingDone = false
     @AppStorage(AppSettings.locationLookups) private var lookups = true
-    @State private var step = Step.welcome
+    @AppStorage(AppSettings.altTextGeneration) private var writesAltText = true
+    @Environment(\.appleIntelligence) private var intelligence
+    @Environment(\.openURL) private var openURL
+    @State private var step = Step.initial
 
     /// A Debug Tools preview: walks through the screens without asking for
     /// access or saving any answer, and calls `onFinish` at the end.
@@ -27,6 +41,7 @@ struct OnboardingView: View {
                     case .welcome: welcome
                     case .photos: photos
                     case .location: location
+                    case .altText: altText
                     case .ready: ready
                     }
                 }
@@ -55,7 +70,7 @@ struct OnboardingView: View {
             Header(systemImage: "camera.aperture", title: "ShutterDrop", message: "Turn your photos into Instagram posts that are ready to paste.", large: true)
             VStack(alignment: .leading, spacing: 22) {
                 Feature(systemImage: "photo", title: "Fills in the details", message: "Camera, lens, exposure, date and place, read from each photo.")
-                Feature(systemImage: "sparkles", title: "Writes alt text on your iPhone", message: "Apple Intelligence describes each photo. Nothing is uploaded.")
+                Feature(systemImage: "text.below.photo", title: "Helps with alt text", message: "If you'd like, Apple Intelligence describes each photo on your iPhone. Nothing is uploaded.")
                 Feature(systemImage: "doc.on.doc", title: "Copy, paste, post", message: "Your post is laid out and one tap away from Instagram.")
             }
         }
@@ -91,6 +106,32 @@ struct OnboardingView: View {
                 ("checkmark.circle", "Uses the location already saved in each photo, so no Location Services prompt"),
                 ("gearshape", "Change it anytime in Settings › Location Lookups"),
             ])
+        }
+    }
+
+    private var altText: some View {
+        VStack(spacing: 24) {
+            Header(systemImage: "text.below.photo", title: "Alt Text", message: "Alt text describes a photo for people who use screen readers. Instagram lets you add it to each post.")
+            switch intelligence {
+            case .unsupportedDevice:
+                Note(text: "This iPhone doesn't support Apple Intelligence, so you'll write alt text yourself. Everything else in ShutterDrop works the same.")
+            case .turnedOff:
+                Note(text: "Apple Intelligence is turned off on this iPhone. To have ShutterDrop write alt text, turn it on in Settings › Apple Intelligence & Siri. Or write your own; everything else works the same.")
+            case .downloading, .ready:
+                Checklist(items: [
+                    ("sparkles", "Apple Intelligence writes it on this iPhone"),
+                    ("lock", "Nothing is uploaded"),
+                    ("pencil", "Edit it, or write your own, on any post"),
+                ])
+                if intelligence == .downloading {
+                    Note(text: "Your iPhone is still downloading Apple Intelligence. ShutterDrop starts writing alt text once that's done.")
+                }
+            }
+            if intelligence.isSupported {
+                Text("You can change this anytime in Settings.")
+                    .font(.footnote)
+                    .foregroundStyle(Palette.secondaryText)
+            }
         }
     }
 
@@ -135,13 +176,36 @@ struct OnboardingView: View {
         case .location:
             PrimaryButton("Turn On Location Lookups") {
                 if !preview { lookups = true }
-                step = .ready
+                step = .altText
             }
             Button("Not Now") {
                 if !preview { lookups = false }
-                step = .ready
+                step = .altText
             }
             .frame(minHeight: 44)
+        case .altText:
+            if intelligence.isSupported {
+                PrimaryButton("Write Alt Text for Me") {
+                    if !preview { writesAltText = true }
+                    step = .ready
+                }
+                Button("I'll Write My Own") {
+                    if !preview { writesAltText = false }
+                    step = .ready
+                }
+                .frame(minHeight: 44)
+                if intelligence == .turnedOff {
+                    Button("Open Settings") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                    }
+                    .font(.footnote)
+                }
+            } else {
+                PrimaryButton("Continue") {
+                    if !preview { writesAltText = false }
+                    step = .ready
+                }
+            }
         case .ready:
             PrimaryButton("Get Started") {
                 guard !preview else { onFinish?(); return }
@@ -220,6 +284,18 @@ private struct Checklist: View {
         }
         .padding(.horizontal, 16)
         .background(Palette.surface, in: .rect(cornerRadius: 20))
+    }
+}
+
+private struct Note: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .foregroundStyle(Palette.sage)
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Palette.surface, in: .rect(cornerRadius: 20))
     }
 }
 

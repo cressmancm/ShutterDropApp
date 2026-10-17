@@ -4,13 +4,13 @@ title: ShutterDrop Privacy Policy
 
 # ShutterDrop Privacy Policy
 
-Last updated: October 16, 2026
+Last updated: October 17, 2026
 
 ShutterDrop collects no data. It has no accounts, analytics, tracking or ads, and it doesn't send your photos or posts to me or anyone else.
 
 ## On your iPhone
 
-- **Photos:** ShutterDrop reads the photos in your ShutterDrop album, or the ones you choose with the photo picker, to fill in their details. Apple's Vision framework and Apple Intelligence look at each photo on your iPhone to write alt text. Photos are never uploaded.
+- **Photos:** ShutterDrop reads the photos in your ShutterDrop album, or the ones you choose with the photo picker, to fill in their details. Apple's Vision framework looks at each photo on your iPhone, and if you turn on alt text, Apple Intelligence writes it on your iPhone too. Photos are never uploaded.
 - **Posts:** your captions, hashtags, alt text and the rest of each post are stored only in ShutterDrop on your iPhone. There's no sync, backup or export, and deleting the app deletes them.
 
 ## What leaves your iPhone

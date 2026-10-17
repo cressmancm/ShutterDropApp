@@ -19,7 +19,7 @@ struct DebugToolsView: View {
     @State private var reprocessing = false
 
     enum Preview: String, Identifiable {
-        case unsupported, turnedOff, downloading, onboarding
+        case onboarding
         var id: String { rawValue }
     }
 
@@ -36,18 +36,13 @@ struct DebugToolsView: View {
                 } header: {
                     Text("Apple Intelligence")
                 } footer: {
-                    Text("Anything but Ready or Follow This Device shows that requirement screen right away. It has a Debug Tools button to come back here.")
+                    Text("Changes what the Alt Text setting, the post screen and the onboarding Alt Text step say and offer, and whether alt text gets written.")
                 }
 
                 Section {
-                    Button("iPhone Not Supported") { preview = .unsupported }
-                    Button("Turn On Apple Intelligence") { preview = .turnedOff }
-                    Button("Waiting for Apple Intelligence") { preview = .downloading }
-                    Button("Onboarding") { preview = .onboarding }
-                } header: {
-                    Text("Preview Screens")
+                    Button("Preview Onboarding") { preview = .onboarding }
                 } footer: {
-                    Text("Opens each screen on its own. Nothing you do in a preview changes the app's state.")
+                    Text("Opens onboarding on its own, as it looks in the state above. It doesn't ask for access or save any answer.")
                 }
 
                 Section {
@@ -107,7 +102,7 @@ struct DebugToolsView: View {
                     Button("Reset ShutterDrop's Settings", role: .destructive) { confirmingReset = true }
                         .foregroundStyle(Palette.destructive)
                 } footer: {
-                    Text("Puts back the default post template, search site and Location Lookups, and clears the forced Apple Intelligence state. Posts stay.")
+                    Text("Puts back the default post template, search site, Location Lookups and alt text setting, and clears the forced Apple Intelligence state. Posts stay.")
                 }
             }
             .listRowBackground(Palette.surface)
@@ -133,7 +128,7 @@ struct DebugToolsView: View {
         }
         .confirmationDialog("Reset ShutterDrop's settings?", isPresented: $confirmingReset, titleVisibility: .visible) {
             Button("Reset Settings", role: .destructive) {
-                for key in [AppSettings.postTemplate, AppSettings.locationLookups, AppSettings.hashtagSearchSite, DebugOptions.intelligenceStateKey] {
+                for key in [AppSettings.postTemplate, AppSettings.locationLookups, AppSettings.hashtagSearchSite, AppSettings.altTextGeneration, DebugOptions.intelligenceStateKey] {
                     UserDefaults.standard.removeObject(forKey: key)
                 }
             }
@@ -170,10 +165,9 @@ private struct PreviewContainer: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             switch preview {
-            case .unsupported: NeedsAppleIntelligenceView(state: .unsupportedDevice, showsDebugButton: false)
-            case .turnedOff: NeedsAppleIntelligenceView(state: .turnedOff, showsDebugButton: false)
-            case .downloading: NeedsAppleIntelligenceView(state: .downloading, showsDebugButton: false)
-            case .onboarding: OnboardingView(preview: true, onFinish: { dismiss() })
+            case .onboarding:
+                OnboardingView(preview: true, onFinish: { dismiss() })
+                    .environment(\.appleIntelligence, AppleIntelligence.current)
             }
             Button("Close", systemImage: "xmark") { dismiss() }
                 .labelStyle(.iconOnly)

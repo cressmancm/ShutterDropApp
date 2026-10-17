@@ -1,8 +1,8 @@
 import SwiftData
 import SwiftUI
 
-/// Decides what the app shows: the Apple Intelligence requirement screen,
-/// onboarding on first launch, or the three tabs.
+/// Decides what the app shows: onboarding on first launch, then the three
+/// tabs. Also keeps the Apple Intelligence state current for every screen.
 struct RootView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.scenePhase) private var scenePhase
@@ -13,14 +13,13 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            if intelligence != .ready && !DebugOptions.skipIntelligenceCheck {
-                NeedsAppleIntelligenceView(state: intelligence)
-            } else if !onboardingDone {
+            if !onboardingDone {
                 OnboardingView()
             } else {
                 MainTabs()
             }
         }
+        .environment(\.appleIntelligence, intelligence)
         .onChange(of: scenePhase, initial: true) { _, phase in
             guard phase == .active else { return }
             intelligence = AppleIntelligence.current
@@ -29,6 +28,10 @@ struct RootView: View {
         }
         .onChange(of: forcedIntelligence) { intelligence = AppleIntelligence.current }
         .task(id: intelligence) {
+            if intelligence == .ready, onboardingDone {
+                // Alt text for photos that came in while it couldn't run.
+                await intake.fillMissingAltText(in: context)
+            }
             // While the model downloads, check back until it's ready.
             while intelligence == .downloading {
                 try? await Task.sleep(for: .seconds(5))

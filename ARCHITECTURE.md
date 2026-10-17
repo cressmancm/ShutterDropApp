@@ -5,8 +5,7 @@ ShutterDrop is one SwiftUI app, `app/Sources/ShutterDrop`, built from the Xcode 
 ```mermaid
 flowchart TD
     app["ShutterDropApp<br/>model container, Intake"]
-    app --> root["RootView<br/>Apple Intelligence check, onboarding, tabs"]
-    root --> needs["NeedsAppleIntelligenceView"]
+    app --> root["RootView<br/>onboarding or tabs, Apple Intelligence state"]
     root --> onboarding["OnboardingView"]
     root --> tabs["QueueView · PostedView · SettingsView"]
     tabs --> detail["PostDetailView<br/>caption, preview, details, copy, Open in Instagram"]
@@ -37,7 +36,7 @@ flowchart TD
 | `PhotoDetailsReader` | — | EXIF, TIFF and GPS metadata, and the upright 1568 px copy the models see |
 | `LocationNamer` | — | MapKit reverse geocoding and nearby landmarks, and the rules for which name to use: a named place, the neighborhood from the short address, a nearby landmark, then the city. Uses only MapKit's current address types, not the deprecated placemark |
 | `ImageAnalyzer` | — | Vision scene labels and text recognition, and the alt text prompt |
-| `AppleIntelligence` | — | Whether the on-device model can run, as one of four states |
+| `AppleIntelligence` | — | Whether the on-device model can run, as one of four states, and what the alt text setting says in each |
 | `Hashtags` | — | Cleaning pasted text, suggestions, the search page address |
 | `InstagramSharer` | main actor | Handing the photo to Instagram as an `.igo` file, or the share sheet |
 | `CSVImporter` | `importPosts` on the main actor | Parsing the old sheet's CSV and matching rows to photos |
@@ -48,7 +47,7 @@ flowchart TD
 
 - **Nothing touches PhotoKit before the user answers.** Any PhotoKit fetch before permission is decided brings up the system prompt, so every read in `PhotoLibrary` checks the status first, and the photo picker is linked to the library only once access is granted. The prompt appears only when the user taps Allow Photo Access in onboarding.
 - **Nothing is uploaded.** Vision and Foundation Models run on the device. The only network use is MapKit place names (behind the Location Lookups setting), the hashtag search page the user opens, and the handoff to Instagram the user taps.
-- **Apple Intelligence is required.** `RootView` shows `NeedsAppleIntelligenceView` for any state but `.ready`, and checks again whenever the app comes to the front and every few seconds while the model downloads.
+- **Apple Intelligence is optional, and only for alt text.** The app works the same without it. `RootView` keeps the state current (whenever the app comes to the front, and every few seconds while the model downloads) and shares it as `\.appleIntelligence`. Alt text is written only when the user wants it (`AppSettings.altTextEnabled`) and the state is `.ready`; when that becomes true, `Intake.fillMissingAltText` fills in queued posts that came in without it.
 - **Every field is editable per post; the layout is not.** Each post keeps its own location, camera line, exposure, date, hashtags and alt text, which the user can change. The template (tags, emojis, line breaks) lives only in Settings.
 - **Missing readings drop out.** `PostFormat` returns an empty string for a reading the photo doesn't have, so its token leaves the exposure line and an all-empty line leaves the post.
 - **Posted posts stay.** Album sync removes queue items whose photo left the album or was deleted, but never a post already marked as posted.

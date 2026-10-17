@@ -27,16 +27,6 @@ enum DebugOptions {
         ("downloading", "Downloading"),
     ]
 
-    /// `-skipIntelligenceCheck`: show the app even where Apple Intelligence
-    /// can't run, such as some simulators.
-    static var skipIntelligenceCheck: Bool {
-        #if DEBUG
-        ProcessInfo.processInfo.arguments.contains("-skipIntelligenceCheck")
-        #else
-        false
-        #endif
-    }
-
     /// A forced Apple Intelligence state, or nil to follow the device.
     static var intelligenceState: AppleIntelligence? {
         #if DEBUG
@@ -76,6 +66,15 @@ enum DebugOptions {
         ProcessInfo.processInfo.arguments.contains("-openFirstPost")
         #else
         false
+        #endif
+    }
+
+    /// `-onboardingStep photos|location|altText|ready`: start onboarding there.
+    static var onboardingStep: String? {
+        #if DEBUG
+        UserDefaults.standard.string(forKey: "onboardingStep")
+        #else
+        nil
         #endif
     }
 

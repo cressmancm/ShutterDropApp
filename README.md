@@ -10,7 +10,7 @@ Every photo I post to Instagram follows the same layout: a caption, where it was
 
 My first version was a [Claude Code](https://claude.com/claude-code) skill on my Mac. It read a ShutterDrop album in Apple Photos, pulled the camera details out of each photo, looked up the place, had Claude write alt text and research hashtags, and wrote everything into a Numbers spreadsheet. It worked, but it lived on my Mac, and I post from my phone.
 
-So I rebuilt it as an iPhone app, again with Claude Code as my partner. This time everything happens on the phone: Apple's Vision framework and the on-device Apple Intelligence model look at the photo, and nothing is uploaded anywhere. It was a chance to learn iOS development and agentic coding while solving a real problem of my own.
+So I rebuilt it as an iPhone app, again with Claude Code as my partner. This time everything happens on the phone: Apple's Vision framework looks at the photo, the on-device Apple Intelligence model can write its alt text if you'd like it to, and nothing is uploaded anywhere. It was a chance to learn iOS development and agentic coding while solving a real problem of my own.
 
 ShutterDrop is free and privacy-focused, and it always will be. You can see more of my work at [chipcressman.photo](https://chipcressman.photo).
 
@@ -20,7 +20,7 @@ ShutterDrop is free and privacy-focused, and it always will be. You can see more
 
 - **Fills in the details.** Camera, lens, ISO, focal length, aperture, shutter speed and date come straight from each photo. Missing readings are left out, never shown as zero.
 - **Names the place.** With Location Lookups on, the photo's location becomes a place name like "Zona Romántica, Puerto Vallarta, Jal.", never a street address.
-- **Writes alt text on your iPhone.** Apple Intelligence looks at the photo and writes two or three sentences for screen readers. Regenerate it, or edit it, any time.
+- **Helps with alt text, if you want it.** With Apple Intelligence on, ShutterDrop writes two or three sentences describing each photo for screen readers, on your iPhone. Regenerate it, edit it, or turn it off in Settings and write your own.
 - **Lays out the post your way.** One post template with `{template tags}` decides the layout of every post. A line whose tags are empty drops out, so a photo with no location simply has no 📍 line.
 - **Helps with hashtags.** Search Hashtags opens a hashtag research site inside the app. Paste what you find and ShutterDrop keeps only the #tags. Suggestions come from your own past tags and the place name.
 - **One tap to Instagram.** Copy Post puts the finished post on the clipboard. Open in Instagram copies it too, then opens Instagram's new-post screen with the photo already chosen.
@@ -28,16 +28,15 @@ ShutterDrop is free and privacy-focused, and it always will be. You can see more
 
 ## Requirements
 
-- An iPhone with Apple Intelligence: iPhone 15 Pro or later, with Apple Intelligence turned on.
-- iOS 27 or later.
-
-ShutterDrop needs Apple Intelligence to write alt text and has no fallback. On an iPhone without it, the app says so and goes no further.
+- An iPhone with iOS 27 or later.
+- For alt text written by Apple Intelligence: iPhone 15 Pro or later, with Apple Intelligence turned on. It's optional; without it you write alt text yourself, and everything else works the same.
 
 ## Security and privacy
 
 - **No analytics, tracking or accounts.** ShutterDrop collects nothing about you or your photos, and reports nothing to anyone, including me.
 - **No ads.** None, now or ever.
 - **Your photos stay on your iPhone.** Vision and Apple Intelligence run on the device. Photos are never uploaded.
+- **Generative AI is your choice.** Apple Intelligence only writes alt text, and only if you say yes in onboarding or Settings.
 - **Your posts stay on your iPhone too.** There's no sync, backup or export. Deleting the app deletes them.
 - **Open source.** Every line of ShutterDrop is in this repository.
 
