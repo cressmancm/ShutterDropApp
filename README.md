@@ -64,7 +64,7 @@ The [privacy policy](https://cressmancm.github.io/ShutterDropApp/privacy/) says 
 ShutterDrop is a SwiftUI app with no third-party code.
 
 - **Photos** (PhotoKit, ImageIO): reads the ShutterDrop album each time the app opens, and the camera details from each photo's metadata, downloading originals from iCloud when needed.
-- **Place names** (MapKit): reverse geocoding plus nearby points of interest, picked in order: an area of interest, a landmark near the photo, the neighborhood, then the city.
+- **Place names** (MapKit): reverse geocoding plus nearby points of interest, picked in order: a named place like Pike Place Market, the neighborhood, a landmark near the photo, then the city.
 - **Seeing the photo** (Vision, Foundation Models): Vision names what's in the photo and reads any text in it; Apple's on-device model writes the alt text from the photo itself.
 - **Posts** (SwiftData): each post keeps its details, caption, hashtags and alt text on the device.
 

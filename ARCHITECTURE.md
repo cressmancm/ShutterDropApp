@@ -35,7 +35,7 @@ flowchart TD
 | `Intake` | main actor, `@Observable` | How photos get into the queue and leave it: album sync, the photo picker, Remove |
 | `PostProcessor` | main actor | Filling in a new post: details, place name, Vision labels, alt text |
 | `PhotoDetailsReader` | — | EXIF, TIFF and GPS metadata, and the upright 1568 px copy the models see |
-| `LocationNamer` | — | MapKit reverse geocoding and nearby landmarks, and the rules for which name to use |
+| `LocationNamer` | — | MapKit reverse geocoding and nearby landmarks, and the rules for which name to use: a named place, the neighborhood from the short address, a nearby landmark, then the city. Uses only MapKit's current address types, not the deprecated placemark |
 | `ImageAnalyzer` | — | Vision scene labels and text recognition, and the alt text prompt |
 | `AppleIntelligence` | — | Whether the on-device model can run, as one of four states |
 | `Hashtags` | — | Cleaning pasted text, suggestions, the search page address |
