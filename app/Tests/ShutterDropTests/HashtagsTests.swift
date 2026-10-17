@@ -60,27 +60,43 @@ struct HashtagsTests {
 
 @Suite("Place names")
 struct LocationNamerTests {
-    @Test("An area of interest comes first")
-    func areaOfInterest() {
-        let name = LocationNamer.compose(.init(areasOfInterest: ["Malecón"], nearbyLandmark: "Los Arcos", neighborhood: "Centro", cityWithContext: "Puerto Vallarta, Jal."))
-        #expect(name == "Malecón, Puerto Vallarta, Jal.")
+    @Test("A named place comes first")
+    func namedPlace() {
+        let name = LocationNamer.compose(.init(namedPlace: "Pike Place Market", neighborhood: "Belltown", nearbyLandmark: "Overlook Walk", city: "Seattle, WA"))
+        #expect(name == "Pike Place Market, Seattle, WA")
     }
 
-    @Test("Then a nearby landmark, then the neighborhood")
+    @Test("Then the neighborhood, then a nearby landmark")
     func fallbacks() {
-        #expect(LocationNamer.compose(.init(nearbyLandmark: "Los Arcos", neighborhood: "Centro", cityWithContext: "Puerto Vallarta, Jal.")) == "Los Arcos, Puerto Vallarta, Jal.")
-        #expect(LocationNamer.compose(.init(neighborhood: "Zona Romántica", cityWithContext: "Puerto Vallarta, Jal.")) == "Zona Romántica, Puerto Vallarta, Jal.")
+        #expect(LocationNamer.compose(.init(neighborhood: "Amapas", nearbyLandmark: "Los Arcos", city: "Puerto Vallarta, Jal.")) == "Amapas, Puerto Vallarta, Jal.")
+        #expect(LocationNamer.compose(.init(nearbyLandmark: "Snoqualmie Falls", city: "Snoqualmie, WA")) == "Snoqualmie Falls, Snoqualmie, WA")
     }
 
     @Test("With nothing better, the city alone")
     func cityOnly() {
-        #expect(LocationNamer.compose(.init(cityWithContext: "Seattle, WA")) == "Seattle, WA")
+        #expect(LocationNamer.compose(.init(city: "Seattle, WA")) == "Seattle, WA")
         #expect(LocationNamer.compose(.init()) == nil)
     }
 
     @Test("A place that's just the city isn't repeated")
     func noRepeat() {
-        #expect(LocationNamer.compose(.init(neighborhood: "Seattle", cityWithContext: "Seattle, WA")) == "Seattle, WA")
+        #expect(LocationNamer.compose(.init(neighborhood: "Seattle", city: "Seattle, WA")) == "Seattle, WA")
+    }
+
+    @Test("A name that's the street address isn't a place")
+    func streetNames() {
+        #expect(LocationNamer.namedPlace(name: "Calle Falsa 123", shortAddress: "Calle Falsa 123, Amapas, Puerto Vallarta") == nil)
+        #expect(LocationNamer.namedPlace(name: "SE 69th Pl", shortAddress: "SE 69th Pl, Snoqualmie") == nil)
+        #expect(LocationNamer.namedPlace(name: "Pike Place Market", shortAddress: "1902 Pike Pl, Seattle") == "Pike Place Market")
+        #expect(LocationNamer.namedPlace(name: "Eiffel Tower", shortAddress: nil) == nil)
+    }
+
+    @Test("The neighborhood is the part of the short address before the city")
+    func neighborhood() {
+        #expect(LocationNamer.neighborhood(shortAddress: "Calle Falsa 123, Amapas, Puerto Vallarta", cityName: "Puerto Vallarta") == "Amapas")
+        #expect(LocationNamer.neighborhood(shortAddress: "1902 Pike Pl, Seattle", cityName: "Seattle") == nil)
+        #expect(LocationNamer.neighborhood(shortAddress: "Main St, 98065, Snoqualmie", cityName: "Snoqualmie") == nil)
+        #expect(LocationNamer.neighborhood(shortAddress: "Calle 5, Centro, Oaxaca", cityName: "Puerto Vallarta") == nil)
     }
 }
 
