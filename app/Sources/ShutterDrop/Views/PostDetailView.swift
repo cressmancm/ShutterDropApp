@@ -19,6 +19,7 @@ struct PostDetailView: View {
     @State private var searchTerm = ""
     @State private var searchPage: IdentifiableURL?
     @State private var showingPhoto = false
+    @FocusState private var editing: Bool
 
     var body: some View {
         Form {
@@ -38,6 +39,7 @@ struct PostDetailView: View {
             Section("Caption") {
                 TextField("Write a caption (optional)", text: $post.caption, axis: .vertical)
                     .lineLimit(3...8)
+                    .focused($editing)
             }
 
             Section("Preview") {
@@ -54,10 +56,10 @@ struct PostDetailView: View {
             }
 
             Section("Details") {
-                LabeledField("Location", text: $post.location)
-                LabeledField("Camera", text: $post.cameraLine)
-                LabeledField("Exposure", text: $post.exposure)
-                LabeledField("Date Taken", text: $post.dateText)
+                LabeledField("Location", text: $post.location, focus: $editing)
+                LabeledField("Camera", text: $post.cameraLine, focus: $editing)
+                LabeledField("Exposure", text: $post.exposure, focus: $editing)
+                LabeledField("Date Taken", text: $post.dateText, focus: $editing)
             }
 
             hashtagsSection
@@ -65,6 +67,7 @@ struct PostDetailView: View {
             Section("Alt Text") {
                 TextField("Alt text", text: $post.altText, axis: .vertical)
                     .lineLimit(3...8)
+                    .focused($editing)
                 Button {
                     Task {
                         regenerating = true
@@ -87,6 +90,14 @@ struct PostDetailView: View {
         .navigationTitle("Post")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
+        .scrollDismissesKeyboard(.interactively)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { editing = false }
+                    .fontWeight(.semibold)
+            }
+        }
         .safeAreaInset(edge: .bottom) { actionBar }
         .sensoryFeedback(.success, trigger: copiedPost) { _, new in new }
         .sensoryFeedback(.success, trigger: copiedAlt) { _, new in new }
@@ -115,6 +126,7 @@ struct PostDetailView: View {
     private var hashtagsSection: some View {
         Section {
             TextField("#hashtags", text: $post.hashtags, axis: .vertical)
+                .focused($editing)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .onChange(of: post.hashtags) { old, new in
@@ -214,10 +226,12 @@ struct PostDetailView: View {
 private struct LabeledField: View {
     let title: String
     @Binding var text: String
+    var focus: FocusState<Bool>.Binding
 
-    init(_ title: String, text: Binding<String>) {
+    init(_ title: String, text: Binding<String>, focus: FocusState<Bool>.Binding) {
         self.title = title
         self._text = text
+        self.focus = focus
     }
 
     var body: some View {
@@ -226,6 +240,7 @@ private struct LabeledField: View {
                 .font(.footnote)
                 .foregroundStyle(Palette.secondaryText)
             TextField(title, text: $text, axis: .vertical)
+                .focused(focus)
         }
     }
 }

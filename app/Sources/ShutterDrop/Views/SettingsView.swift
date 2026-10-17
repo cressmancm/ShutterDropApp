@@ -58,6 +58,7 @@ struct SettingsView: View {
             .scrollContentBackground(.hidden)
             .background(Palette.background)
             .navigationTitle("Settings")
+            .toolbarTitleDisplayMode(.inlineLarge)
             .fileImporter(isPresented: $importing, allowedContentTypes: [.commaSeparatedText, .plainText]) { result in
                 switch result {
                 case .success(let url):
@@ -96,12 +97,14 @@ struct TemplateEditorView: View {
     @AppStorage(AppSettings.postTemplate) private var template = PostTemplate.defaultText
     @State private var selection: TextSelection?
     @State private var confirmingReset = false
+    @FocusState private var editing: Bool
 
     var body: some View {
         Form {
             Group {
             Section {
                 TextEditor(text: $template, selection: $selection)
+                    .focused($editing)
                     .frame(minHeight: 240)
                     .font(.body)
                     .autocorrectionDisabled()
@@ -138,6 +141,14 @@ struct TemplateEditorView: View {
         .background(Palette.background)
         .navigationTitle("Post Template")
         .navigationBarTitleDisplayMode(.inline)
+        .scrollDismissesKeyboard(.interactively)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { editing = false }
+                    .fontWeight(.semibold)
+            }
+        }
         .confirmationDialog("Reset the template to ShutterDrop's default?", isPresented: $confirmingReset, titleVisibility: .visible) {
             Button("Reset to Default", role: .destructive) { template = PostTemplate.defaultText }
         }
@@ -157,12 +168,14 @@ struct TemplateEditorView: View {
 /// The hashtag search site, as an address with a {query} tag.
 struct SearchSiteView: View {
     @Binding var site: String
+    @FocusState private var editing: Bool
 
     var body: some View {
         Form {
             Group {
             Section {
                 TextField("Address", text: $site, axis: .vertical)
+                    .focused($editing)
                     .keyboardType(.URL)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
@@ -179,6 +192,13 @@ struct SearchSiteView: View {
         .background(Palette.background)
         .navigationTitle("Search Site")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { editing = false }
+                    .fontWeight(.semibold)
+            }
+        }
     }
 }
 

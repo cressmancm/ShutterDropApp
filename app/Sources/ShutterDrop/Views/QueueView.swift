@@ -47,6 +47,8 @@ struct QueueView: View {
                 }
             }
             .navigationTitle("Queue")
+            // The large title and the + button share one line.
+            .toolbarTitleDisplayMode(.inlineLarge)
             .navigationDestination(for: Post.self) { PostDetailView(post: $0) }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -108,6 +110,7 @@ struct PostedView: View {
                 }
             }
             .navigationTitle("Posted")
+            .toolbarTitleDisplayMode(.inlineLarge)
             .navigationDestination(for: Post.self) { PostDetailView(post: $0) }
         }
     }
