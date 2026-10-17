@@ -3,10 +3,14 @@ import Photos
 import UIKit
 
 /// The ShutterDrop album in Photos, and reading photos from the library.
+///
+/// Photos runs change blocks and some result handlers on its own queues, so
+/// every closure handed to PhotoKit is `@Sendable`: a closure tied to the main
+/// actor would stop the app when Photos calls it from another thread.
 @MainActor
 @Observable
 final class PhotoLibrary {
-    static let albumName = "ShutterDrop"
+    nonisolated static let albumName = "ShutterDrop"
 
     private(set) var status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
 
@@ -30,13 +34,10 @@ final class PhotoLibrary {
     func album() async throws -> PHAssetCollection? {
         if let album = existingAlbum() { return album }
         guard hasFullAccess else { return nil }
-        var placeholderID: String?
-        try await PHPhotoLibrary.shared().performChanges {
-            let request = PHAssetCollectionChangeRequest.creationRequestForAssetCollection(withTitle: Self.albumName)
-            placeholderID = request.placeholderForCreatedAssetCollection.localIdentifier
+        try await PHPhotoLibrary.shared().performChanges { @Sendable in
+            PHAssetCollectionChangeRequest.creationRequestForAssetCollection(withTitle: PhotoLibrary.albumName)
         }
-        guard let placeholderID else { return nil }
-        return PHAssetCollection.fetchAssetCollections(withLocalIdentifiers: [placeholderID], options: nil).firstObject
+        return existingAlbum()
     }
 
     /// The photos in the ShutterDrop album that ShutterDrop is allowed to see.
@@ -50,8 +51,11 @@ final class PhotoLibrary {
 
     /// Takes a photo out of the ShutterDrop album. The photo stays in the library.
     func removeFromAlbum(assetID: String) async throws {
-        guard hasFullAccess, let album = existingAlbum(), let asset = asset(withID: assetID) else { return }
-        try await PHPhotoLibrary.shared().performChanges {
+        guard hasFullAccess, let albumID = existingAlbum()?.localIdentifier else { return }
+        try await PHPhotoLibrary.shared().performChanges { @Sendable in
+            guard let album = PHAssetCollection.fetchAssetCollections(withLocalIdentifiers: [albumID], options: nil).firstObject,
+                  let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetID], options: nil).firstObject
+            else { return }
             PHAssetCollectionChangeRequest(for: album)?.removeAssets([asset] as NSArray)
         }
     }
@@ -77,7 +81,7 @@ final class PhotoLibrary {
         options.deliveryMode = .highQualityFormat
         options.version = .current
         return try await withCheckedThrowingContinuation { continuation in
-            PHImageManager.default().requestImageDataAndOrientation(for: asset, options: options) { data, _, _, info in
+            PHImageManager.default().requestImageDataAndOrientation(for: asset, options: options) { @Sendable data, _, _, info in
                 if let data {
                     continuation.resume(returning: data)
                 } else {
@@ -95,7 +99,7 @@ final class PhotoLibrary {
         options.deliveryMode = .highQualityFormat
         options.resizeMode = .fast
         return await withCheckedContinuation { continuation in
-            PHImageManager.default().requestImage(for: asset, targetSize: size, contentMode: .aspectFill, options: options) { image, _ in
+            PHImageManager.default().requestImage(for: asset, targetSize: size, contentMode: .aspectFill, options: options) { @Sendable image, _ in
                 continuation.resume(returning: image)
             }
         }
