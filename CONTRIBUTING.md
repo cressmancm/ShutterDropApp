@@ -26,12 +26,24 @@ Debug builds read these; release builds ignore them. Add them in the scheme's Ru
 | `-onboardingDone YES` | Skips onboarding (it sets the setting itself) |
 | `-startTab posted` or `-startTab settings` | Opens on that tab |
 | `-openFirstPost` | Opens the newest post in the queue |
+| `-openDebugTools` | Opens Settings › Debug Tools (use with `-startTab settings`) |
 
 For example, to see the post screen with an example post:
 
 ```bash
 xcrun simctl launch booted com.chipcressman.shutterdrop -skipIntelligenceCheck -sampleData -onboardingDone YES -openFirstPost
 ```
+
+## Debug Tools
+
+Debug builds add **Settings › Debug Tools**, for testing and reviewing without leaving the app. Release builds compile none of it in.
+
+- **Apple Intelligence:** force Ready, Not Supported, Turned Off or Downloading, or follow the device. A forced requirement screen has a Debug Tools button to come back.
+- **Preview Screens:** each Apple Intelligence screen and onboarding on its own, with a Close button. Previews change nothing; the onboarding preview doesn't ask for access or save answers.
+- **Restart Onboarding:** runs the real onboarding again.
+- **Posts:** add sample posts, mark everything as not posted, read every photo again, or delete all posts to see the empty queue.
+- **Photos:** the current access, asking for it if it hasn't been asked, iOS Settings, and syncing the album now.
+- **Reset ShutterDrop's Settings:** the default template, search site and Location Lookups, and no forced state.
 
 ## Where ShutterDrop keeps things
 

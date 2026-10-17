@@ -1,9 +1,32 @@
 import Foundation
 import SwiftData
 
-/// Launch arguments for taking screenshots in the simulator. Debug builds only;
-/// release builds ignore them.
+/// Debug-build switches for testing and screenshots: launch arguments, and the
+/// Debug Tools screen in Settings. Release builds compile none of it in, so
+/// every switch reads as off there.
 enum DebugOptions {
+    /// True in Debug builds, where Settings shows Debug Tools.
+    static var isEnabled: Bool {
+        #if DEBUG
+        true
+        #else
+        false
+        #endif
+    }
+
+    /// The settings key for a forced Apple Intelligence state. A launch
+    /// argument (`-intelligenceState off`) and Debug Tools both set it.
+    static let intelligenceStateKey = "intelligenceState"
+
+    /// The Apple Intelligence states Debug Tools can force, by stored value.
+    static let intelligenceStates: [(value: String, label: String)] = [
+        ("", "Follow This Device"),
+        ("ready", "Ready"),
+        ("unsupported", "iPhone Not Supported"),
+        ("off", "Turned Off"),
+        ("downloading", "Downloading"),
+    ]
+
     /// `-skipIntelligenceCheck`: show the app even where Apple Intelligence
     /// can't run, such as some simulators.
     static var skipIntelligenceCheck: Bool {
@@ -14,11 +37,11 @@ enum DebugOptions {
         #endif
     }
 
-    /// `-intelligenceState unsupported|off|downloading`: show that
-    /// requirement screen whatever the device says.
+    /// A forced Apple Intelligence state, or nil to follow the device.
     static var intelligenceState: AppleIntelligence? {
         #if DEBUG
-        switch UserDefaults.standard.string(forKey: "intelligenceState") {
+        switch UserDefaults.standard.string(forKey: intelligenceStateKey) {
+        case "ready": .ready
         case "unsupported": .unsupportedDevice
         case "off": .turnedOff
         case "downloading": .downloading
@@ -56,9 +79,26 @@ enum DebugOptions {
         #endif
     }
 
+    /// `-openDebugTools`: open Settings › Debug Tools (with `-startTab settings`).
+    static var openDebugTools: Bool {
+        #if DEBUG
+        ProcessInfo.processInfo.arguments.contains("-openDebugTools")
+        #else
+        false
+        #endif
+    }
+
+    /// With `-sampleData`, fills an empty store with example posts.
     @MainActor
     static func insertSampleData(into context: ModelContext) {
         guard sampleData, ((try? context.fetchCount(FetchDescriptor<Post>())) ?? 0) == 0 else { return }
+        addSamplePosts(into: context)
+    }
+
+    /// Adds four example posts: three in the queue (one with no location) and
+    /// one already posted. They have no photo, so their images are blank.
+    @MainActor
+    static func addSamplePosts(into context: ModelContext) {
         let calendar = Calendar(identifier: .gregorian)
         func day(_ year: Int, _ month: Int, _ day: Int) -> Date {
             calendar.date(from: DateComponents(year: year, month: month, day: day, hour: 12))!
@@ -70,7 +110,7 @@ enum DebugOptions {
             ("Snoqualmie Falls, Snoqualmie, WA", "NIKON Z 8", "NIKKOR Z 24-120mm f/4 S", "64 ISO | 35 mm | f/11 | 1/4 s", day(2024, 11, 9), true),
         ]
         for (index, example) in examples.enumerated() {
-            let post = Post(assetID: "sample-\(index)", source: .imported, dateTaken: example.4)
+            let post = Post(assetID: "sample-\(UUID().uuidString)", source: .imported, dateTaken: example.4)
             post.location = example.0
             post.cameraModel = example.1
             post.lensModel = example.2

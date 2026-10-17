@@ -10,6 +10,7 @@ struct SettingsView: View {
     @State private var importing = false
     @State private var importResult: CSVImporter.Result?
     @State private var importError: String?
+    @State private var showingDebugTools = DebugOptions.openDebugTools
 
     var body: some View {
         NavigationStack {
@@ -48,6 +49,18 @@ struct SettingsView: View {
                     Text("Add photos to the ShutterDrop album in Photos and they appear in your queue when you open the app.")
                 }
 
+                #if DEBUG
+                Section {
+                    NavigationLink {
+                        DebugToolsView()
+                    } label: {
+                        Label("Debug Tools", systemImage: "ladybug")
+                    }
+                } footer: {
+                    Text("Debug builds only. Force states and preview screens for testing.")
+                }
+                #endif
+
                 Section("About") {
                     Link("Privacy", destination: URL(string: "https://cressmancm.github.io/ShutterDropApp/privacy/")!)
                     LabeledContent("Version", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")
@@ -59,6 +72,9 @@ struct SettingsView: View {
             .background(Palette.background)
             .navigationTitle("Settings")
             .toolbarTitleDisplayMode(.inlineLarge)
+            #if DEBUG
+            .navigationDestination(isPresented: $showingDebugTools) { DebugToolsView() }
+            #endif
             .fileImporter(isPresented: $importing, allowedContentTypes: [.commaSeparatedText, .plainText]) { result in
                 switch result {
                 case .success(let url):

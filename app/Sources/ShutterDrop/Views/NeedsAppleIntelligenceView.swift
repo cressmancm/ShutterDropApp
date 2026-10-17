@@ -4,7 +4,10 @@ import SwiftUI
 /// needs it to write alt text and has no fallback.
 struct NeedsAppleIntelligenceView: View {
     let state: AppleIntelligence
+    /// In a Debug build with a forced state, a way back to Debug Tools.
+    var showsDebugButton = true
     @Environment(\.openURL) private var openURL
+    @State private var showingDebugTools = false
 
     var body: some View {
         Group {
@@ -42,5 +45,24 @@ struct NeedsAppleIntelligenceView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Palette.background)
+        #if DEBUG
+        .safeAreaInset(edge: .bottom) {
+            if showsDebugButton && DebugOptions.intelligenceState != nil {
+                Button("Debug Tools", systemImage: "ladybug") { showingDebugTools = true }
+                    .buttonStyle(.bordered)
+                    .padding(.bottom)
+            }
+        }
+        .sheet(isPresented: $showingDebugTools) {
+            NavigationStack {
+                DebugToolsView()
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { showingDebugTools = false }
+                        }
+                    }
+            }
+        }
+        #endif
     }
 }

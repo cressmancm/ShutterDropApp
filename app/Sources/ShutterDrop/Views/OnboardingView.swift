@@ -14,6 +14,11 @@ struct OnboardingView: View {
     @AppStorage(AppSettings.locationLookups) private var lookups = true
     @State private var step = Step.welcome
 
+    /// A Debug Tools preview: walks through the screens without asking for
+    /// access or saving any answer, and calls `onFinish` at the end.
+    var preview = false
+    var onFinish: (() -> Void)?
+
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
@@ -114,6 +119,7 @@ struct OnboardingView: View {
             PrimaryButton("Continue") { step = .photos }
         case .photos:
             PrimaryButton("Allow Photo Access") {
+                guard !preview else { step = .location; return }
                 Task {
                     await intake.library.requestAccess()
                     _ = try? await intake.library.album()
@@ -128,16 +134,17 @@ struct OnboardingView: View {
                 .multilineTextAlignment(.center)
         case .location:
             PrimaryButton("Turn On Location Lookups") {
-                lookups = true
+                if !preview { lookups = true }
                 step = .ready
             }
             Button("Not Now") {
-                lookups = false
+                if !preview { lookups = false }
                 step = .ready
             }
             .frame(minHeight: 44)
         case .ready:
             PrimaryButton("Get Started") {
+                guard !preview else { onFinish?(); return }
                 onboardingDone = true
                 Task { await intake.syncAlbum(in: context) }
             }

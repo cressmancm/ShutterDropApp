@@ -11,9 +11,15 @@ enum AppleIntelligence: Equatable {
     /// Still downloading; ShutterDrop carries on when it's done.
     case downloading
 
+    /// The state ShutterDrop acts on: the device's, unless Debug Tools or a
+    /// launch argument forces one in a Debug build.
     static var current: AppleIntelligence {
-        if let forced = DebugOptions.intelligenceState { return forced }
-        return switch SystemLanguageModel.default.availability {
+        DebugOptions.intelligenceState ?? device
+    }
+
+    /// What this device actually reports.
+    static var device: AppleIntelligence {
+        switch SystemLanguageModel.default.availability {
         case .available:
             .ready
         case .unavailable(.deviceNotEligible):

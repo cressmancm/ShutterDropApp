@@ -23,12 +23,12 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		5D0000000000000000000021 /* ShutterDrop */ = {
+		5D0000000000000000000021 /* Sources/ShutterDrop */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Sources/ShutterDrop;
 			sourceTree = "<group>";
 		};
-		5D0000000000000000000022 /* ShutterDropTests */ = {
+		5D0000000000000000000022 /* Tests/ShutterDropTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Tests/ShutterDropTests;
 			sourceTree = "<group>";
@@ -57,8 +57,8 @@
 			isa = PBXGroup;
 			children = (
 				5D0000000000000000000013 /* Signing.xcconfig */,
-				5D0000000000000000000021 /* ShutterDrop */,
-				5D0000000000000000000022 /* ShutterDropTests */,
+				5D0000000000000000000021 /* Sources/ShutterDrop */,
+				5D0000000000000000000022 /* Tests/ShutterDropTests */,
 				5D0000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,7 +88,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				5D0000000000000000000021 /* ShutterDrop */,
+				5D0000000000000000000021 /* Sources/ShutterDrop */,
 			);
 			name = ShutterDrop;
 			packageProductDependencies = (
@@ -111,7 +111,7 @@
 				5D0000000000000000000302 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				5D0000000000000000000022 /* ShutterDropTests */,
+				5D0000000000000000000022 /* Tests/ShutterDropTests */,
 			);
 			name = ShutterDropTests;
 			packageProductDependencies = (

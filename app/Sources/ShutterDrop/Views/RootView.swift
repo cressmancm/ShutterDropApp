@@ -8,6 +8,7 @@ struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(Intake.self) private var intake
     @AppStorage(AppSettings.onboardingDone) private var onboardingDone = false
+    @AppStorage(DebugOptions.intelligenceStateKey) private var forcedIntelligence = ""
     @State private var intelligence = AppleIntelligence.current
 
     var body: some View {
@@ -26,6 +27,7 @@ struct RootView: View {
             guard onboardingDone else { return }
             Task { await intake.syncAlbum(in: context) }
         }
+        .onChange(of: forcedIntelligence) { intelligence = AppleIntelligence.current }
         .task(id: intelligence) {
             // While the model downloads, check back until it's ready.
             while intelligence == .downloading {
