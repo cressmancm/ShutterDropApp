@@ -52,7 +52,9 @@ extension AppleIntelligence {
         case .downloading where enabled:
             "Your iPhone is still downloading Apple Intelligence. ShutterDrop starts writing alt text once that's done."
         case .ready where enabled:
-            "Apple Intelligence writes alt text on this iPhone. Nothing is uploaded."
+            AppSettings.cloudEnabled
+                ? "Apple Intelligence writes alt text, on Private Cloud Compute when it can and on this iPhone when it can't."
+                : "Apple Intelligence writes alt text on this iPhone. Nothing is uploaded."
         default:
             nil
         }

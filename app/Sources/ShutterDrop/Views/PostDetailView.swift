@@ -70,7 +70,7 @@ struct PostDetailView: View {
                 TextField("Describe the photo for people using screen readers", text: $post.altText, axis: .vertical)
                     .lineLimit(3...8)
                     .focused($editing)
-                if writesAltText && intelligence == .ready {
+                if writesAltText && (intelligence == .ready || CloudModel.isUsable) {
                     Button {
                         Task {
                             regenerating = true
@@ -89,7 +89,7 @@ struct PostDetailView: View {
             } header: {
                 Text("Alt Text")
             } footer: {
-                if writesAltText && intelligence != .ready, let note = intelligence.altTextNote(enabled: true) {
+                if writesAltText && intelligence != .ready && !CloudModel.isUsable, let note = intelligence.altTextNote(enabled: true) {
                     Text(note)
                 }
             }
@@ -150,6 +150,9 @@ struct PostDetailView: View {
             let suggestions = Hashtags.suggestions(
                 location: post.location,
                 camera: post.cameraModel,
+                sceneLabels: post.sceneLabels,
+                light: post.sun?.light,
+                ideas: post.suggestedHashtags,
                 current: post.hashtags,
                 history: allPosts.filter { $0.assetID != post.assetID }.map(\.hashtags)
             )

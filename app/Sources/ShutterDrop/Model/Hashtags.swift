@@ -33,17 +33,71 @@ enum Hashtags {
         return slug.count >= 3 ? "#\(slug)" : nil
     }
 
-    /// Tags to offer under the Hashtags field: from the place name, the
-    /// camera, and the tags used most on other posts. No AI is involved.
-    static func suggestions(location: String, camera: String, current: String, history: [String], limit: Int = 8) -> [String] {
+    /// Photography niches for what Vision sees, the kind of tag people
+    /// browse on Instagram.
+    static let niches: [String: String] = [
+        "lighthouse": "#lighthousephotography",
+        "waterfall": "#waterfallphotography",
+        "bridge": "#bridgephotography",
+        "beach": "#beachphotography",
+        "mountain": "#mountainphotography",
+        "lake": "#lakephotography",
+        "forest": "#forestphotography",
+        "desert": "#desertphotography",
+        "canyon": "#canyonphotography",
+        "cityscape": "#cityscape",
+        "skyscraper": "#architecturephotography",
+        "night sky": "#nightphotography",
+        "bird": "#birdphotography",
+        "flower": "#flowerphotography",
+        "boat": "#boatphotography",
+        "sailboat": "#sailing",
+        "castle": "#castlephotography",
+    ]
+
+    /// Regional photography communities, by state or province.
+    static let regions: [String: String] = [
+        "WA": "#pnwphotography", "OR": "#pnwphotography", "ID": "#pnwphotography", "BC": "#pnwphotography",
+        "CA": "#californiaphotography", "HI": "#hawaiiphotography", "AK": "#alaskaphotography",
+        "CO": "#coloradophotography", "UT": "#utahphotography", "AZ": "#arizonaphotography",
+    ]
+
+    /// Tags to offer under the Hashtags field, best first: Private Cloud
+    /// Compute's ideas when there are any, then the place, the photography
+    /// niche, the region, the light, the camera and the tags used most on
+    /// other posts.
+    static func suggestions(
+        location: String,
+        camera: String,
+        sceneLabels: [String] = [],
+        light: SunPosition.Light? = nil,
+        ideas: [String] = [],
+        current: String,
+        history: [String],
+        limit: Int = 8
+    ) -> [String] {
         let have = Set(extract(from: current).map { $0.lowercased() })
-        var candidates: [String] = []
-        for part in location.components(separatedBy: ",") {
-            let part = part.trimmed
+        var candidates = ideas.flatMap(extract(from:))
+        let parts = location.components(separatedBy: ",").map(\.trimmed)
+        var places: [String] = []
+        for part in parts {
             // Skip abbreviations like "Jal." or "CA".
             guard part.count > 3, !part.hasSuffix(".") else { continue }
-            if let tag = tag(from: part) { candidates.append(tag) }
+            if let tag = tag(from: part) { places.append(tag) }
         }
+        // The landmark first, then the niche, then the city.
+        candidates += places.prefix(1)
+        candidates += sceneLabels.compactMap { niches[$0.lowercased()] }.prefix(2)
+        if let state = parts.last?.uppercased().replacingOccurrences(of: ".", with: ""), let region = regions[state] {
+            candidates.append(region)
+        }
+        switch light {
+        case .goldenHour: candidates.append("#goldenhour")
+        case .blueHour: candidates.append("#bluehour")
+        case .night: candidates.append("#nightphotography")
+        default: break
+        }
+        candidates += places.dropFirst()
         if let tag = tag(from: camera) { candidates.append(tag) }
 
         var counts: [String: Int] = [:]

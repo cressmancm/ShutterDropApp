@@ -42,6 +42,25 @@ struct HashtagsTests {
         #expect(suggestions == ["#puertovallarta", "#nikonz8", "#mexico", "#birds", "#sunset"])
     }
 
+    @Test("Then the landmark, the niche, the region and the light, before the city and camera")
+    func richSuggestions() {
+        let suggestions = Hashtags.suggestions(
+            location: "West Point Lighthouse, Seattle, WA",
+            camera: "NIKON Z 8",
+            sceneLabels: ["outdoor", "lighthouse", "beach"],
+            light: .goldenHour,
+            current: "",
+            history: []
+        )
+        #expect(suggestions == ["#westpointlighthouse", "#lighthousephotography", "#beachphotography", "#pnwphotography", "#goldenhour", "#seattle", "#nikonz8"])
+    }
+
+    @Test("Private Cloud Compute's ideas come first")
+    func ideasFirst() {
+        let suggestions = Hashtags.suggestions(location: "Seattle, WA", camera: "", ideas: ["#discoverypark", "#seattle"], current: "", history: [])
+        #expect(suggestions == ["#discoverypark", "#seattle", "#pnwphotography"])
+    }
+
     @Test("The search term is the place, else Vision's top label")
     func searchTerm() {
         #expect(Hashtags.searchTerm(location: "Zona Romántica, Puerto Vallarta, Jal.", sceneLabels: ["beach"]) == "zonaromantica")
@@ -60,6 +79,30 @@ struct HashtagsTests {
 
 @Suite("Place names")
 struct LocationNamerTests {
+    @Test("The place the photo shows comes before everything else")
+    func subjectFirst() {
+        let name = LocationNamer.compose(.init(subject: "West Point Lighthouse", namedPlace: "S Beach Trail Overlook", neighborhood: "Magnolia", city: "Seattle, WA"))
+        #expect(name == "West Point Lighthouse, Seattle, WA")
+    }
+
+    @Test("What Vision sees finds the nearest place with a matching name")
+    func subjectMatching() {
+        let nearby: [(name: String, distance: Double)] = [
+            ("Drinking Fountain", 226), ("West Point Lighthouse", 320), ("Alki Point Lighthouse", 9294), ("North Beach", 1288),
+        ]
+        #expect(LocationNamer.subject(matching: ["lighthouse"], in: nearby) == "West Point Lighthouse")
+        #expect(LocationNamer.subject(matching: ["waterfall"], in: nearby) == nil)
+        #expect(LocationNamer.subjectLabels(in: ["outdoor", "Lighthouse", "sky", "beach"]) == ["lighthouse"])
+    }
+
+    @Test("Up-close subjects only match nearby")
+    func closeSubjects() {
+        #expect(LocationNamer.subject(matching: ["statue"], in: [("Pioneer Statue", 300)]) == "Pioneer Statue")
+        #expect(LocationNamer.subject(matching: ["statue"], in: [("Pioneer Statue", 900)]) == nil)
+        #expect(LocationNamer.subject(matching: ["waterfall"], in: [("Snoqualmie Falls", 900)]) == "Snoqualmie Falls")
+        #expect(LocationNamer.subject(matching: ["bridge"], in: [("Golden Gate Bridge Vista Point", 400), ("Golden Gate Bridge", 1500)]) == "Golden Gate Bridge")
+    }
+
     @Test("A named place comes first")
     func namedPlace() {
         let name = LocationNamer.compose(.init(namedPlace: "Pike Place Market", neighborhood: "Belltown", nearbyLandmark: "Overlook Walk", city: "Seattle, WA"))
@@ -89,6 +132,7 @@ struct LocationNamerTests {
         #expect(LocationNamer.namedPlace(name: "SE 69th Pl", shortAddress: "SE 69th Pl, Snoqualmie") == nil)
         #expect(LocationNamer.namedPlace(name: "Pike Place Market", shortAddress: "1902 Pike Pl, Seattle") == "Pike Place Market")
         #expect(LocationNamer.namedPlace(name: "Eiffel Tower", shortAddress: nil) == nil)
+        #expect(LocationNamer.namedPlace(name: "766", shortAddress: "Djúpivogur") == nil)
     }
 
     @Test("The neighborhood is the part of the short address before the city")
@@ -129,5 +173,53 @@ struct CSVImporterTests {
     @Test("A file without a Filename column is refused")
     func wrongFile() {
         #expect(throws: CSVImporter.ImportError.self) { try CSVImporter.rows(from: "Name,Price\nTea,4") }
+    }
+}
+
+@Suite("Alt text")
+struct AltTextTests {
+    @Test("Line breaks and doubled spaces become single spaces")
+    func paragraph() {
+        #expect(ImageAnalyzer.paragraph("Waterfall at the edge.  \n\nMist rises. ") == "Waterfall at the edge. Mist rises.")
+    }
+}
+
+@Suite("Sun position")
+struct SunPositionTests {
+    // Seattle, June 21, 2025.
+    let latitude = 47.6062, longitude = -122.3321
+
+    @Test("High at midday")
+    func midday() throws {
+        let noon = try #require(ISO8601DateFormatter().date(from: "2025-06-21T20:12:00Z"))
+        let sun = SunPosition(date: noon, latitude: latitude, longitude: longitude)
+        #expect(abs(sun.elevation - 65.8) < 1)
+        #expect(sun.direction == "south")
+        #expect(sun.light == .daylight)
+    }
+
+    @Test("Golden hour, low in the northwest, before sunset")
+    func evening() throws {
+        // Sunset that day was 9:11 PM PDT.
+        let evening = try #require(ISO8601DateFormatter().date(from: "2025-06-22T03:45:00Z"))
+        let sun = SunPosition(date: evening, latitude: latitude, longitude: longitude)
+        #expect(sun.light == .goldenHour)
+        #expect(sun.direction == "northwest")
+        #expect(sun.description.hasPrefix("golden hour, with the sun low"))
+    }
+
+    @Test("Blue hour, then night")
+    func afterSunset() throws {
+        let formatter = ISO8601DateFormatter()
+        let blue = try #require(formatter.date(from: "2025-06-22T04:40:00Z"))
+        let night = try #require(formatter.date(from: "2025-06-22T07:00:00Z"))
+        #expect(SunPosition(date: blue, latitude: latitude, longitude: longitude).light == .blueHour)
+        #expect(SunPosition(date: night, latitude: latitude, longitude: longitude).light == .night)
+    }
+
+    @Test("Needs a time and a place")
+    func missing() {
+        #expect(SunPosition(date: nil, latitude: 1, longitude: 1) == nil)
+        #expect(SunPosition(date: .now, latitude: nil, longitude: 1) == nil)
     }
 }

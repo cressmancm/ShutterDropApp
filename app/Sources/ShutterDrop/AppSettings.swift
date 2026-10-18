@@ -7,6 +7,7 @@ enum AppSettings {
     static let hashtagSearchSite = "hashtagSearchSite"
     static let onboardingDone = "onboardingDone"
     static let altTextGeneration = "altTextGeneration"
+    static let privateCloudCompute = "privateCloudCompute"
 
     /// best-hashtags.com, the site the old ShutterDrop skill used.
     static let defaultHashtagSearchSite = "https://best-hashtags.com/hashtag/{query}/"
@@ -22,9 +23,16 @@ enum AppSettings {
     }
 
     /// Whether ShutterDrop writes alt text right now: the user wants it and
-    /// Apple Intelligence can run.
+    /// Apple Intelligence can run, on this iPhone or on Private Cloud Compute.
     static var writesAltText: Bool {
-        altTextEnabled && AppleIntelligence.current == .ready
+        altTextEnabled && (AppleIntelligence.current == .ready || CloudModel.isUsable)
+    }
+
+    /// Whether the user lets ShutterDrop send photos to Private Cloud Compute.
+    /// Off until they turn it on, and always off in builds without the
+    /// entitlement.
+    static var cloudEnabled: Bool {
+        CloudModel.isEntitled && UserDefaults.standard.bool(forKey: privateCloudCompute)
     }
 
     /// On unless the user turned it off in onboarding or Settings.

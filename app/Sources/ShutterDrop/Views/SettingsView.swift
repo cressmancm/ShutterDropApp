@@ -7,6 +7,7 @@ struct SettingsView: View {
     @Environment(Intake.self) private var intake
     @AppStorage(AppSettings.locationLookups) private var lookups = true
     @AppStorage(AppSettings.altTextGeneration) private var writesAltText = true
+    @AppStorage(AppSettings.privateCloudCompute) private var usesCloud = false
     @Environment(\.appleIntelligence) private var intelligence
     @Environment(\.openURL) private var openURL
     @AppStorage(AppSettings.hashtagSearchSite) private var searchSite = AppSettings.defaultHashtagSearchSite
@@ -53,6 +54,23 @@ struct SettingsView: View {
                 }
                 .onChange(of: writesAltText) { _, on in
                     if on { Task { await intake.fillMissingAltText(in: context) } }
+                }
+
+                if CloudModel.isEntitled {
+                    Section {
+                        Toggle("Use Private Cloud Compute", isOn: Binding(
+                            get: { usesCloud && CloudModel.isAvailable },
+                            set: { usesCloud = $0 }
+                        ))
+                        .disabled(!CloudModel.isAvailable)
+                        if usesCloud, let suggestion = CloudModel.limitIncreaseSuggestion {
+                            Button("Get More with iCloud+") { suggestion.show() }
+                        }
+                    } header: {
+                        Text("Private Cloud Compute")
+                    } footer: {
+                        Text((CloudModel.note.map { $0 + "\n\n" } ?? "") + "Sends each new photo to Apple's larger Apple Intelligence model, which uses it only for the request and doesn't store it. It recognizes the place the photo shows, writes richer alt text and suggests hashtags. Needs a connection and has a daily limit. When off, everything stays on this iPhone.")
+                    }
                 }
 
                 Section("Hashtags") {

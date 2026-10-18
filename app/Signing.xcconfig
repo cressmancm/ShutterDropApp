@@ -7,4 +7,12 @@
 CODE_SIGN_STYLE = Automatic
 DEVELOPMENT_TEAM =
 
+// Private Cloud Compute needs a managed entitlement that Apple assigns to a
+// developer account, and calling the model without it crashes the app. So
+// the code that calls it compiles in only when Signing.local.xcconfig sets
+// SHUTTERDROP_PCC = PRIVATE_CLOUD_COMPUTE and points CODE_SIGN_ENTITLEMENTS at
+// ShutterDrop.entitlements. See RELEASING.md.
+SHUTTERDROP_PCC =
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) $(SHUTTERDROP_PCC)
+
 #include? "Signing.local.xcconfig"

@@ -49,8 +49,16 @@ final class Post {
     /// The photo's GPS position, kept so a place name can be looked up later.
     var latitude: Double?
     var longitude: Double?
-    /// Vision's top scene labels, for the hashtag search term.
+    /// Vision's top scene labels, for hashtag suggestions and the search term.
     var sceneLabels: [String]
+    /// Hashtag ideas from Private Cloud Compute, offered under the Hashtags
+    /// field; the user decides which to add.
+    var suggestedHashtags: [String] = []
+
+    /// Where the sun was when the photo was taken, when it has a time and place.
+    var sun: SunPosition? {
+        SunPosition(date: dateTaken, latitude: latitude, longitude: longitude)
+    }
 
     /// For a photo chosen with the picker: the copy ShutterDrop keeps, since it
     /// can't read the photo from the library later.

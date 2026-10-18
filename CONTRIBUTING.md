@@ -68,6 +68,8 @@ Deleting the app removes all of it.
 - **Album sync:** add or remove photos from the ShutterDrop album in Photos, then bring ShutterDrop to the front or pull down on the queue.
 - **A big album:** Debug Tools › Add Newest Photos to the Album, or launch with `-fillAlbum 150`. The queue's subtitle counts through the photos as they're read, and the `location` log shows the lookups spaced out.
 - **Import:** export ShutterDrop.numbers as CSV (File › Export To › CSV in Numbers), put it in iCloud Drive, and use Settings › Import from CSV. Rows match photos by filename and date taken.
+- **Private Cloud Compute:** needs the Private Cloud Compute entitlement on the developer account, turned on in `Signing.local.xcconfig` (see RELEASING.md). Builds without it leave the Settings section and every call out, since calling the model without the entitlement crashes the app. With it, a failed request (offline, over the limit) is logged under `category:altText` and ShutterDrop falls back to the on-device path. To try the daily limit, use the scheme's Run › Options › Simulated Apple Foundation Models Availability.
+- **Place names:** `LocationNamer` matches Vision labels like lighthouse, waterfall and bridge to nearby place names. The `location` log says when a name came from that match.
 - **Open in Instagram:** needs a real iPhone with Instagram installed. Without Instagram, the share sheet opens instead.
 
 ## Tests
