@@ -92,6 +92,17 @@ struct DebugToolsView: View {
                         if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                     }
                     Button("Sync the Album Now") { Task { await intake.syncAlbum(in: context) } }
+                    Menu("Add Newest Photos to the Album") {
+                        ForEach([10, 50, 150], id: \.self) { count in
+                            Button("\(count) Photos") {
+                                Task {
+                                    await intake.library.addNewestPhotosToAlbum(count: count)
+                                    await intake.syncAlbum(in: context)
+                                }
+                            }
+                        }
+                    }
+                    .disabled(!intake.library.hasFullAccess)
                 } header: {
                     Text("Photos")
                 } footer: {

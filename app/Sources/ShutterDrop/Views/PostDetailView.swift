@@ -188,6 +188,7 @@ struct PostDetailView: View {
             HStack(spacing: 10) {
                 Button {
                     UIPasteboard.general.string = post.render(with: template)
+                    Log.sharing.info("Copied the post")
                     flash($copiedPost)
                 } label: {
                     Label(copiedPost ? "Copied" : "Copy Post", systemImage: "doc.on.doc")
@@ -209,7 +210,7 @@ struct PostDetailView: View {
                 UIPasteboard.general.string = post.render(with: template)
                 Task {
                     guard let data = await intake.processor.imageData(for: post) else { return }
-                    InstagramSharer.shared.share(imageData: data)
+                    await InstagramSharer.shared.share(imageData: data)
                 }
             } label: {
                 Label("Open in Instagram", systemImage: "arrow.up.forward.app")

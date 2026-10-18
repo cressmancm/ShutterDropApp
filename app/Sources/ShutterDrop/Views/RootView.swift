@@ -24,7 +24,14 @@ struct RootView: View {
             guard phase == .active else { return }
             intelligence = AppleIntelligence.current
             guard onboardingDone else { return }
-            Task { await intake.syncAlbum(in: context) }
+            Task {
+                #if DEBUG
+                if let count = DebugOptions.fillAlbumCount {
+                    await intake.library.addNewestPhotosToAlbum(count: count)
+                }
+                #endif
+                await intake.syncAlbum(in: context)
+            }
         }
         .onChange(of: forcedIntelligence) { intelligence = AppleIntelligence.current }
         .task(id: intelligence) {

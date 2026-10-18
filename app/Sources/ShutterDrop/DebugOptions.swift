@@ -78,6 +78,17 @@ enum DebugOptions {
         #endif
     }
 
+    /// `-fillAlbum 20`: before the first sync, add that many of the library's
+    /// newest photos to the ShutterDrop album.
+    static var fillAlbumCount: Int? {
+        #if DEBUG
+        let count = UserDefaults.standard.integer(forKey: "fillAlbum")
+        return count > 0 ? count : nil
+        #else
+        nil
+        #endif
+    }
+
     /// `-openDebugTools`: open Settings › Debug Tools (with `-startTab settings`).
     static var openDebugTools: Bool {
         #if DEBUG

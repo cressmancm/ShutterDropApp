@@ -33,7 +33,7 @@ struct PostImage: View {
         let pixels = CGSize(width: loadSize.width * scale, height: loadSize.height * scale)
         if let name = post.localImageName, let data = LocalImageStore.data(named: name) {
             let maxPixels = Int(max(pixels.width, pixels.height))
-            return PhotoDetailsReader.previewImage(from: data, maxPixelSize: maxPixels).map { UIImage(cgImage: $0) }
+            return await PhotoDetailsReader.preview(data, maxPixelSize: maxPixels).map { UIImage(cgImage: $0) }
         }
         guard let asset = intake.library.asset(withID: post.assetID) else { return nil }
         return await intake.library.image(for: asset, size: pixels)

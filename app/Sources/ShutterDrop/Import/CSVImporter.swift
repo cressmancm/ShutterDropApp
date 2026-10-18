@@ -69,15 +69,16 @@ struct CSVImporter {
         var result = Result()
 
         for row in rows where !row.filename.isEmpty || !row.caption.isEmpty {
-            let match = library.canReadAlbum ? findAsset(for: row) : nil
+            let match = library.canReadAlbum ? await Self.findAsset(filename: row.filename, date: row.date) : nil
             if match?.duplicate == true { result.duplicates.append(row.filename) }
 
             let post: Post
-            if let asset = match?.asset, let found = existing[asset.localIdentifier] {
+            if let id = match?.id, let found = existing[id] {
                 post = found
             } else {
-                let id = match?.asset.localIdentifier ?? "imported-\(UUID().uuidString)"
-                post = Post(assetID: id, source: .imported, filename: row.filename, dateTaken: row.date ?? match?.asset.creationDate)
+                let id = match?.id ?? "imported-\(UUID().uuidString)"
+                let takenInPhotos = match.flatMap { library.asset(withID: $0.id)?.creationDate }
+                post = Post(assetID: id, source: .imported, filename: row.filename, dateTaken: row.date ?? takenInPhotos)
                 post.processedAt = .now
                 context.insert(post)
                 existing[id] = post
@@ -89,6 +90,7 @@ struct CSVImporter {
             if row.posted { result.posted += 1 }
         }
         try context.save()
+        Log.importer.info("Imported \(result.imported, privacy: .public) rows: \(result.matched, privacy: .public) matched, \(result.textOnly.count, privacy: .public) text only, \(result.duplicates.count, privacy: .public) duplicate filenames")
         return result
     }
 
@@ -106,21 +108,24 @@ struct CSVImporter {
         if row.posted && !post.isPosted { post.setPosted(true) }
     }
 
-    /// The photo with this filename taken on the row's date. Looking only at
-    /// that day keeps the search quick in a large library.
-    @MainActor
-    private func findAsset(for row: Row) -> (asset: PHAsset, duplicate: Bool)? {
-        guard !row.filename.isEmpty, let date = row.date else { return nil }
+    /// The library ID of the photo with this filename taken on the row's
+    /// date. Looking only at that day keeps the search quick in a large
+    /// library, and it runs off the main thread because Photos fetches
+    /// filenames on demand.
+    @concurrent
+    static func findAsset(filename: String, date: Date?) async -> (id: String, duplicate: Bool)? {
+        guard !filename.isEmpty, let date else { return nil }
         let calendar = Calendar.current
         let start = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: date))!
         let end = calendar.date(byAdding: .day, value: 2, to: start)!
         let options = PHFetchOptions()
         options.predicate = NSPredicate(format: "creationDate >= %@ AND creationDate < %@", start as NSDate, end as NSDate)
         let result = PHAsset.fetchAssets(with: options)
-        var matches: [PHAsset] = []
+        var matches: [String] = []
         result.enumerateObjects { asset, _, _ in
-            if library.filename(of: asset).caseInsensitiveCompare(row.filename) == .orderedSame {
-                matches.append(asset)
+            let name = PHAssetResource.assetResources(for: asset).first?.filename ?? ""
+            if name.caseInsensitiveCompare(filename) == .orderedSame {
+                matches.append(asset.localIdentifier)
             }
         }
         guard let first = matches.first else { return nil }

@@ -38,22 +38,30 @@ struct ImageAnalyzer {
                 .prefix(5)
                 .map(\.self)
         }
+        Log.altText.debug("Vision: \(labels.scene.count, privacy: .public) labels, \(labels.text.count, privacy: .public) text lines")
         return labels
     }
 
     /// Two or three sentences of alt text, or nil when the model can't run or
     /// declines.
     func altText(for image: CGImage, context: Context) async -> String? {
-        guard AppleIntelligence.current == .ready else { return nil }
+        guard AppleIntelligence.current == .ready else {
+            Log.altText.info("Skipped alt text: Apple Intelligence isn't ready")
+            return nil
+        }
         let session = LanguageModelSession(instructions: Self.instructions)
+        let clock = ContinuousClock()
+        let start = clock.now
         do {
             let response = try await session.respond {
                 Self.prompt(for: context)
                 Attachment(image).label("photo")
             }
             let text = response.content.trimmed
+            Log.altText.info("Wrote alt text in \((clock.now - start).logText, privacy: .public): \(text, privacy: .private)")
             return text.isEmpty ? nil : text
         } catch {
+            Log.altText.error("Apple Intelligence didn't write alt text: \(error.localizedDescription, privacy: .public)")
             return nil
         }
     }

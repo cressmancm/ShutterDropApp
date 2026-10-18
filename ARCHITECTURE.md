@@ -32,9 +32,10 @@ flowchart TD
 | `PostFormat` | — | How readings read in a post: "1/125", "f/5.6", "Model with Lens", "March 1, 2025" |
 | `PhotoLibrary` | main actor, `@Observable` | PhotoKit: permission, the ShutterDrop album, assets and their image data |
 | `Intake` | main actor, `@Observable` | How photos get into the queue and leave it: album sync, the photo picker, Remove |
-| `PostProcessor` | main actor | Filling in a new post: details, place name, Vision labels, alt text |
-| `PhotoDetailsReader` | — | EXIF, TIFF and GPS metadata, and the upright 1568 px copy the models see |
+| `PostProcessor` | main actor | Filling in a new post: details, place name, Vision labels, alt text. It coordinates; the heavy work runs elsewhere |
+| `PhotoDetailsReader` | `load` and `preview` are `@concurrent` | EXIF, TIFF and GPS metadata, and the upright 1568 px copy the models see |
 | `LocationNamer` | — | MapKit reverse geocoding and nearby landmarks, and the rules for which name to use: a named place, the neighborhood from the short address, a nearby landmark, then the city. Uses only MapKit's current address types, not the deprecated placemark |
+| `PlaceLookups` | actor | Spacing MapKit requests 1.2 seconds apart, caching names for nearby spots (about 100 m) so a burst of photos from one place costs one lookup, and pausing once when MapKit throttles |
 | `ImageAnalyzer` | — | Vision scene labels and text recognition, and the alt text prompt |
 | `AppleIntelligence` | — | Whether the on-device model can run, as one of four states, and what the alt text setting says in each |
 | `Hashtags` | — | Cleaning pasted text, suggestions, the search page address |
@@ -42,10 +43,12 @@ flowchart TD
 | `CSVImporter` | `importPosts` on the main actor | Parsing the old sheet's CSV and matching rows to photos |
 | `AppSettings` | — | Settings keys and defaults, shared by `@AppStorage` and services |
 | `DebugOptions` | — | Launch arguments for simulator screenshots. Debug builds only |
+| `Log` | — | One `Logger` per area, under the subsystem `com.chipcressman.shutterdrop` |
 
 ## Rules that hold everywhere
 
 - **Nothing touches PhotoKit before the user answers.** Any PhotoKit fetch before permission is decided brings up the system prompt, so every read in `PhotoLibrary` checks the status first, and the photo picker is linked to the library only once access is granted. The prompt appears only when the user taps Allow Photo Access in onboarding.
+- **The main thread only coordinates.** Decoding photos, filename lookups, Vision, Apple Intelligence and MapKit all run off the main actor (`@concurrent` functions, the `PlaceLookups` actor, or the frameworks' own async work), and `Intake` reads one photo at a time, so a 150-photo album doesn't stall scrolling. `Intake.progress` drives the queue's subtitle while it works. PhotoKit change and image request closures are `@Sendable`, because PhotoKit calls them on its own queues and a main-actor closure crashes there.
 - **Nothing is uploaded.** Vision and Foundation Models run on the device. The only network use is MapKit place names (behind the Location Lookups setting), the hashtag search page the user opens, and the handoff to Instagram the user taps.
 - **Apple Intelligence is optional, and only for alt text.** The app works the same without it. `RootView` keeps the state current (whenever the app comes to the front, and every few seconds while the model downloads) and shares it as `\.appleIntelligence`. Alt text is written only when the user wants it (`AppSettings.altTextEnabled`) and the state is `.ready`; when that becomes true, `Intake.fillMissingAltText` fills in queued posts that came in without it.
 - **Every field is editable per post; the layout is not.** Each post keeps its own location, camera line, exposure, date, hashtags and alt text, which the user can change. The template (tags, emojis, line breaks) lives only in Settings.

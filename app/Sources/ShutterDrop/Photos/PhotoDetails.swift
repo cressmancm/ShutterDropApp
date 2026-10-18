@@ -54,6 +54,20 @@ enum PhotoDetailsReader {
         return details
     }
 
+    /// Reads the details and makes the model-sized preview away from the main
+    /// thread: decoding a 45-megapixel original takes long enough to stutter
+    /// the app.
+    @concurrent
+    static func load(_ data: Data) async -> (details: PhotoDetails, preview: CGImage?) {
+        (read(from: data), previewImage(from: data))
+    }
+
+    /// A downsized copy for display, made away from the main thread.
+    @concurrent
+    static func preview(_ data: Data, maxPixelSize: Int) async -> CGImage? {
+        previewImage(from: data, maxPixelSize: maxPixelSize)
+    }
+
     /// The photo upright and no larger than `maxPixelSize` on its longest side.
     /// Large 16-bit TIFFs that the thumbnail path can't handle fall back to the
     /// full image.

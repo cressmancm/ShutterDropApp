@@ -69,8 +69,12 @@ final class PhotoLibrary {
     }
 
     /// The photo's original file name, like DSC_0001.NEF or IMG_1234.HEIC.
-    func filename(of asset: PHAsset) -> String {
-        PHAssetResource.assetResources(for: asset).first?.filename ?? ""
+    /// Photos fetches it on demand, which is slow on the main thread with a
+    /// big album, so this runs elsewhere.
+    @concurrent
+    nonisolated static func filename(assetID: String) async -> String {
+        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetID], options: nil).firstObject else { return "" }
+        return PHAssetResource.assetResources(for: asset).first?.filename ?? ""
     }
 
     /// The photo's full image data, downloaded from iCloud when the library
@@ -112,3 +116,26 @@ final class PhotoLibrary {
         return PHAssetCollection.fetchAssetCollections(with: .album, subtype: .albumRegular, options: options).firstObject
     }
 }
+
+#if DEBUG
+extension PhotoLibrary {
+    /// Debug Tools: adds the library's newest photos to the ShutterDrop album,
+    /// to try a big album without filling it by hand.
+    func addNewestPhotosToAlbum(count: Int) async {
+        guard hasFullAccess, let albumID = try? await album()?.localIdentifier else { return }
+        do {
+            try await PHPhotoLibrary.shared().performChanges { @Sendable in
+                let options = PHFetchOptions()
+                options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+                options.fetchLimit = count
+                let photos = PHAsset.fetchAssets(with: .image, options: options)
+                guard let album = PHAssetCollection.fetchAssetCollections(withLocalIdentifiers: [albumID], options: nil).firstObject else { return }
+                PHAssetCollectionChangeRequest(for: album)?.addAssets(photos)
+            }
+            Log.intake.info("Debug: added up to \(count, privacy: .public) photos to the album")
+        } catch {
+            Log.intake.error("Debug: couldn't add photos to the album: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+}
+#endif

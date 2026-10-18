@@ -27,6 +27,7 @@ Debug builds read these; release builds ignore them. Add them in the scheme's Ru
 | `-startTab posted` or `-startTab settings` | Opens on that tab |
 | `-openFirstPost` | Opens the newest post in the queue |
 | `-openDebugTools` | Opens Settings › Debug Tools (use with `-startTab settings`) |
+| `-fillAlbum 20` | Adds that many of the library's newest photos to the ShutterDrop album before the first sync (needs full photo access) |
 
 For example, to see the post screen with an example post:
 
@@ -42,8 +43,14 @@ Debug builds add **Settings › Debug Tools**, for testing and reviewing without
 - **Preview Onboarding:** onboarding on its own, with a Close button, as it looks in the forced state. It doesn't ask for access or save answers.
 - **Restart Onboarding:** runs the real onboarding again.
 - **Posts:** add sample posts, mark everything as not posted, read every photo again, or delete all posts to see the empty queue.
-- **Photos:** the current access, asking for it if it hasn't been asked, iOS Settings, and syncing the album now.
+- **Photos:** the current access, asking for it if it hasn't been asked, iOS Settings, syncing the album now, and adding the library's newest 10, 50 or 150 photos to the album to try a big one.
 - **Reset ShutterDrop's Settings:** the default template, search site, Location Lookups and alt text setting, and no forced state.
+
+## Logs
+
+ShutterDrop logs with `Logger` under the subsystem `com.chipcressman.shutterdrop`, in the categories `intake`, `photos`, `location`, `altText`, `sharing` and `importer`. Album syncs, each photo read (with timings), MapKit lookups and throttling, alt text and errors all show up there.
+
+To see only ShutterDrop's lines in Xcode's console, filter on `subsystem:com.chipcressman.shutterdrop`, or a category with `category:location`. Filenames, places and alt text are logged as private, so they show as `<private>` outside a debugger.
 
 ## Where ShutterDrop keeps things
 
@@ -59,6 +66,7 @@ Deleting the app removes all of it.
 - **The photo prompt again:** delete the app. In the simulator, if the prompt keeps reappearing after a fresh install, erase the simulator (Device › Erase All Content and Settings); its permission state can outlive the app.
 - **Without Apple Intelligence:** force a state in Debug Tools, or launch with `-intelligenceState unsupported`, `off` or `downloading`, then look at the onboarding Alt Text step, Settings › Alt Text and a post's Alt Text section. On a real iPhone, turning Apple Intelligence off in iOS Settings does the same for `off`.
 - **Album sync:** add or remove photos from the ShutterDrop album in Photos, then bring ShutterDrop to the front or pull down on the queue.
+- **A big album:** Debug Tools › Add Newest Photos to the Album, or launch with `-fillAlbum 150`. The queue's subtitle counts through the photos as they're read, and the `location` log shows the lookups spaced out.
 - **Import:** export ShutterDrop.numbers as CSV (File › Export To › CSV in Numbers), put it in iCloud Drive, and use Settings › Import from CSV. Rows match photos by filename and date taken.
 - **Open in Instagram:** needs a real iPhone with Instagram installed. Without Instagram, the share sheet opens instead.
 

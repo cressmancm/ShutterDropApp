@@ -28,11 +28,15 @@ final class InstagramSharer {
     /// Instagram resizes larger photos itself.
     private let maxPixelSize = 2160
 
-    func share(imageData: Data) {
-        guard let image = PhotoDetailsReader.previewImage(from: imageData, maxPixelSize: maxPixelSize).map(UIImage.init(cgImage:)),
-              let jpeg = image.jpegData(compressionQuality: 0.92),
+    func share(imageData: Data) async {
+        guard let preview = await PhotoDetailsReader.preview(imageData, maxPixelSize: maxPixelSize),
+              let jpeg = await Self.jpeg(preview),
               let host = Self.topViewController()
-        else { return }
+        else {
+            Log.sharing.error("Couldn't prepare the photo for Instagram")
+            return
+        }
+        let image = UIImage(cgImage: preview)
 
         // The menu only lists Instagram, and doesn't open at all when
         // Instagram isn't installed.
@@ -42,12 +46,19 @@ final class InstagramSharer {
             controller.uti = "com.instagram.exclusivegram"
             self.controller = controller
             if controller.presentOpenInMenu(from: host.view.bounds, in: host.view, animated: true) {
+                Log.sharing.info("Handed the photo to Instagram (\(jpeg.count / 1000, privacy: .public) KB)")
                 return
             }
         }
+        Log.sharing.info("Instagram unavailable; opened the share sheet instead")
         let sheet = UIActivityViewController(activityItems: [image], applicationActivities: nil)
         sheet.popoverPresentationController?.sourceView = host.view
         host.present(sheet, animated: true)
+    }
+
+    @concurrent
+    private static func jpeg(_ image: CGImage) async -> Data? {
+        UIImage(cgImage: image).jpegData(compressionQuality: 0.92)
     }
 
     private static func topViewController() -> UIViewController? {

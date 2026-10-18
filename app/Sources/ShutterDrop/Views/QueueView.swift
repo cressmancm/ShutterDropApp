@@ -10,6 +10,13 @@ struct QueueView: View {
     @State private var picked: [PhotosPickerItem] = []
     @State private var path: [Post] = []
 
+    /// Always shown once there are posts, so the title doesn't jump when
+    /// background work starts and stops.
+    private var subtitle: String {
+        if let progress = intake.progress { return progress.line }
+        return posts.isEmpty ? "" : "\(posts.count) to post"
+    }
+
     var body: some View {
         NavigationStack(path: $path) {
             List {
@@ -49,6 +56,8 @@ struct QueueView: View {
             .navigationTitle("Queue")
             // The large title and the + button share one line.
             .toolbarTitleDisplayMode(.inlineLarge)
+            // "Reading 12 of 150 photos…" while new photos are filled in.
+            .navigationSubtitle(subtitle)
             .navigationDestination(for: Post.self) { PostDetailView(post: $0) }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
