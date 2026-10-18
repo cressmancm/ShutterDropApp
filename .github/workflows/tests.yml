@@ -1,5 +1,8 @@
 # Builds ShutterDrop and runs its tests on every push and pull request, on an
 # iOS 27 simulator, ShutterDrop's minimum.
+#
+# The regular macOS runners stop at Xcode 26, which has no iOS 27 SDK, so
+# this uses GitHub's xcode-27 image (a preview as of October 2026).
 name: Tests
 
 on:
@@ -13,7 +16,7 @@ permissions:
 
 jobs:
   test:
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -21,12 +24,12 @@ jobs:
           persist-credentials: false
 
       - name: Toolchain
-        # .xcode-version holds the oldest Xcode ShutterDrop builds with. Picks
-        # the newest Xcode on the runner, and fails here, not in a confusing
-        # compile, if it's older than that.
+        # .xcode-version holds the Xcode ShutterDrop builds with. Selects that
+        # exact version when the runner has it (not a newer beta), and fails
+        # here, not in a confusing compile, if what's selected is older.
         run: |
-          newest="$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)"
-          if [[ -n "$newest" ]]; then sudo xcode-select -s "$newest"; fi
+          pinned="/Applications/Xcode_$(cat .xcode-version).app"
+          if [[ -d "$pinned" ]]; then sudo xcode-select -s "$pinned"; fi
           xcodebuild -version
           required="$(cut -d. -f1 .xcode-version)"
           actual="$(xcodebuild -version | awk '/^Xcode/ { split($2, v, "."); print v[1] }')"
@@ -39,5 +42,5 @@ jobs:
         # Simulator builds need no signing team (app/Signing.xcconfig).
         run: >-
           xcodebuild -project app/ShutterDrop.xcodeproj -scheme ShutterDrop
-          -destination 'platform=iOS Simulator,OS=latest,name=iPhone 17 Pro'
+          -destination 'platform=iOS Simulator,name=iPhone 17'
           -derivedDataPath "$RUNNER_TEMP/DerivedData" test

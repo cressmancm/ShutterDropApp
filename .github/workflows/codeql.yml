@@ -1,6 +1,6 @@
 # CodeQL, set up by hand rather than through GitHub's default setup, so the
-# Swift build can pick the runner's newest Xcode and build for the simulator
-# without signing.
+# Swift build can use Xcode 27 (GitHub's xcode-27 image, a preview as of
+# October 2026) and build for the simulator without signing.
 name: CodeQL
 
 on:
@@ -27,7 +27,7 @@ jobs:
       matrix:
         include:
           - language: swift
-            runner: macos-26
+            runner: xcode-27
             build-mode: manual
           - language: actions
             runner: ubuntu-latest
@@ -45,8 +45,9 @@ jobs:
       - name: Build
         if: matrix.build-mode == 'manual'
         run: |
-          newest="$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)"
-          if [[ -n "$newest" ]]; then sudo xcode-select -s "$newest"; fi
+          pinned="/Applications/Xcode_$(cat .xcode-version).app"
+          if [[ -d "$pinned" ]]; then sudo xcode-select -s "$pinned"; fi
+          xcodebuild -version
           xcodebuild -project app/ShutterDrop.xcodeproj -scheme ShutterDrop \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" \
