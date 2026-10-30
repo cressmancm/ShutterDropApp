@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo.svg" width="120" alt=""></p>
+
 # ShutterDrop
 
 [![Tests](https://github.com/cressmancm/ShutterDropApp/actions/workflows/tests.yml/badge.svg)](https://github.com/cressmancm/ShutterDropApp/actions/workflows/tests.yml)
