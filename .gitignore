@@ -30,7 +30,6 @@ fastlane/test_output/
 
 # Signing and App Store credentials: each developer keeps their own, and
 # none of them belong in a public repo
-Signing.local.xcconfig
 *.mobileprovision
 *.provisionprofile
 *.p12

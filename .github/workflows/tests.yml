@@ -39,8 +39,8 @@ jobs:
           fi
 
       - name: Build and test
-        # Simulator builds need no signing team (app/Signing.xcconfig).
+        # Simulator builds need no signing certificate.
         run: >-
-          xcodebuild -project app/ShutterDrop.xcodeproj -scheme ShutterDrop
+          xcodebuild -project ShutterDrop.xcodeproj -scheme ShutterDrop
           -destination 'platform=iOS Simulator,name=iPhone 17'
           -derivedDataPath "$RUNNER_TEMP/DerivedData" test

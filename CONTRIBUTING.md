@@ -10,9 +10,9 @@ Thanks for looking. This covers building and running ShutterDrop, the settings a
 
 ## In Xcode
 
-Open `app/ShutterDrop.xcodeproj` and use the **ShutterDrop** scheme: Run (⌘R) builds and opens the app, Test (⌘U) runs the tests.
+Open `ShutterDrop.xcodeproj` and use the **ShutterDrop** scheme: Run (⌘R) builds and opens the app, Test (⌘U) runs the unit and UI tests.
 
-**Signing.** Simulator builds need no team. To run on an iPhone or archive for the App Store, copy `app/Signing.local.xcconfig.example` to `app/Signing.local.xcconfig` (git ignores it) and put in your team ID. Xcode signs with your Apple Development certificate and makes the provisioning profile itself.
+**Signing.** Signing is automatic, with the maintainer's team set in the project. Simulator builds work with any team. To run on your own iPhone, pick your team in the ShutterDrop target's Signing & Capabilities, and change the bundle ID if Xcode asks; leave both out of pull requests. Xcode signs with your Apple Development certificate and makes the provisioning profile itself.
 
 ## Launch arguments for the simulator
 
@@ -48,7 +48,7 @@ Debug builds add **Settings › Debug Tools**, for testing and reviewing without
 
 ## Logs
 
-ShutterDrop logs with `Logger` under the subsystem `com.chipcressman.shutterdrop`, in the categories `intake`, `photos`, `location`, `altText`, `sharing` and `importer`. Album syncs, each photo read (with timings), MapKit lookups and throttling, alt text and errors all show up there.
+ShutterDrop logs with `Logger` under the subsystem `com.chipcressman.shutterdrop`, in the categories `intake`, `photos`, `location`, `altText` and `sharing`. Album syncs, each photo read (with timings), MapKit lookups and throttling, alt text and errors all show up there.
 
 To see only ShutterDrop's lines in Xcode's console, filter on `subsystem:com.chipcressman.shutterdrop`, or a category with `category:location`. Filenames, places and alt text are logged as private, so they show as `<private>` outside a debugger.
 
@@ -67,11 +67,10 @@ Deleting the app removes all of it.
 - **Without Apple Intelligence:** force a state in Debug Tools, or launch with `-intelligenceState unsupported`, `off` or `downloading`, then look at the onboarding Alt Text step, Settings › Alt Text and a post's Alt Text section. On a real iPhone, turning Apple Intelligence off in iOS Settings does the same for `off`.
 - **Album sync:** add or remove photos from the ShutterDrop album in Photos, then bring ShutterDrop to the front or pull down on the queue.
 - **A big album:** Debug Tools › Add Newest Photos to the Album, or launch with `-fillAlbum 150`. The queue's subtitle counts through the photos as they're read, and the `location` log shows the lookups spaced out.
-- **Import:** export ShutterDrop.numbers as CSV (File › Export To › CSV in Numbers), put it in iCloud Drive, and use Settings › Import from CSV. Rows match photos by filename and date taken.
-- **Private Cloud Compute:** needs the Private Cloud Compute entitlement on the developer account, turned on in `Signing.local.xcconfig` (see RELEASING.md). Builds without it leave the Settings section and every call out, since calling the model without the entitlement crashes the app. With it, a failed request (offline, over the limit) is logged under `category:altText` and ShutterDrop falls back to the on-device path. To try the daily limit, use the scheme's Run › Options › Simulated Apple Foundation Models Availability.
+- **Private Cloud Compute:** needs the Private Cloud Compute entitlement on the developer account, turned on in the project's build settings (see RELEASING.md). Builds without it leave the Settings section and every call out, since calling the model without the entitlement crashes the app. With it, a failed request (offline, over the limit) is logged under `category:altText` and ShutterDrop falls back to the on-device path. To try the daily limit, use the scheme's Run › Options › Simulated Apple Foundation Models Availability.
 - **Place names:** `LocationNamer` matches Vision labels like lighthouse, waterfall and bridge to nearby place names. The `location` log says when a name came from that match.
 - **Open in Instagram:** needs a real iPhone with Instagram installed. Without Instagram, the share sheet opens instead.
 
 ## Tests
 
-The tests cover the template engine, detail formatting, hashtags, place name rules and CSV parsing. They're Swift Testing suites and run hosted in the app, as Xcode runs any app's tests.
+The tests cover the template engine, detail formatting, hashtags and place name rules. They're Swift Testing suites and run hosted in the app, as Xcode runs any app's tests.

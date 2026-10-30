@@ -1,9 +1,0 @@
-// Copy to Signing.local.xcconfig (git ignores it) and put in your team ID,
-// from developer.apple.com → Account → Membership details. Xcode signs with
-// your Apple Development certificate and makes the provisioning profile itself.
-DEVELOPMENT_TEAM = YOUR_TEAM_ID
-
-// Once Apple assigns the Private Cloud Compute entitlement to your account,
-// uncomment these to sign with it and compile in the code that uses it.
-// SHUTTERDROP_PCC = PRIVATE_CLOUD_COMPUTE
-// CODE_SIGN_ENTITLEMENTS = ShutterDrop.entitlements

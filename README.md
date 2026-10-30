@@ -75,16 +75,17 @@ ShutterDrop is a SwiftUI app with no third-party code.
 
 | Folder | What's in it |
 | --- | --- |
-| `app/Sources/ShutterDrop` | The app |
-| `app/Tests/ShutterDropTests` | The tests |
-| `app/ShutterDrop.xcodeproj` | The Xcode project |
+| `ShutterDrop` | The app |
+| `ShutterDropTests` | The unit tests |
+| `ShutterDropUITests` | The UI tests |
+| `ShutterDrop.xcodeproj` | The Xcode project |
 | `docs` | The privacy policy page and screenshots |
 
 Check out [ARCHITECTURE.md](ARCHITECTURE.md) for a map of the codebase.
 
 ## Building from source
 
-You'll need a Mac with Xcode 27 or later. Open `app/ShutterDrop.xcodeproj`, pick an iPhone simulator running iOS 27, and run the **ShutterDrop** scheme. To run on your own iPhone, copy `app/Signing.local.xcconfig.example` to `app/Signing.local.xcconfig` and put in your team ID.
+You'll need a Mac with Xcode 27 or later. Open `ShutterDrop.xcodeproj`, pick an iPhone simulator running iOS 27, and run the **ShutterDrop** scheme. To run on your own iPhone, pick your team in the ShutterDrop target's Signing & Capabilities.
 
 To run the tests: Product › Test (⌘U) in Xcode.
 

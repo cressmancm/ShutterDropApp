@@ -1,6 +1,8 @@
 # How ShutterDrop is put together
 
-ShutterDrop is one SwiftUI app, `app/Sources/ShutterDrop`, built from the Xcode project `app/ShutterDrop.xcodeproj`. The project uses synchronized folders, so every file in `Sources/ShutterDrop` is part of the app and every file in `Tests/ShutterDropTests` part of the tests, with no project edits for new files.
+ShutterDrop is one SwiftUI app, `ShutterDrop`, built from the Xcode project `ShutterDrop.xcodeproj`, set up the way Xcode sets up a new iOS app. The project uses synchronized folders, so every file in `ShutterDrop` is part of the app, every file in `ShutterDropTests` part of the unit tests and every file in `ShutterDropUITests` part of the UI tests, with no project edits for new files.
+
+The app target uses Xcode's default isolation: everything is on the main actor unless it says otherwise. Types that are plain logic, or that do their work away from the main thread, are marked `nonisolated`.
 
 ```mermaid
 flowchart TD
@@ -20,7 +22,6 @@ flowchart TD
     detail --> template["PostTemplate<br/>{template tags} → finished post"]
     detail --> hashtags["Hashtags<br/>clean, suggest, search page"]
     detail --> sharer["InstagramSharer<br/>.igo handoff, share sheet"]
-    tabs --> importer["CSVImporter<br/>old ShutterDrop.numbers rows"]
 ```
 
 ## Who owns what
@@ -28,24 +29,23 @@ flowchart TD
 | Piece | Isolation | Owns |
 | --- | --- | --- |
 | `Post` | SwiftData model | One photo on its way to Instagram: what was read from it, what the user typed, and whether it's posted. Keyed by the photo's Photos library ID |
-| `PostTemplate` | — | Turning a template and a post's values into the finished post: filling tags, dropping lines whose tags are all empty, collapsing blank lines |
-| `PostFormat` | — | How readings read in a post: "1/125", "f/5.6", "Model with Lens", "March 1, 2025" |
+| `PostTemplate` | nonisolated | Turning a template and a post's values into the finished post: filling tags, dropping lines whose tags are all empty, collapsing blank lines |
+| `PostFormat` | nonisolated | How readings read in a post: "1/125", "f/5.6", "Model with Lens", "March 1, 2025" |
 | `PhotoLibrary` | main actor, `@Observable` | PhotoKit: permission, the ShutterDrop album, assets and their image data |
 | `Intake` | main actor, `@Observable` | How photos get into the queue and leave it: album sync, the photo picker, Remove |
 | `PostProcessor` | main actor | Filling in a new post: details, place name, Vision labels, alt text. It coordinates; the heavy work runs elsewhere |
-| `PhotoDetailsReader` | `load` and `preview` are `@concurrent` | EXIF, TIFF and GPS metadata, and the upright 1568 px copy the models see |
-| `LocationNamer` | — | MapKit reverse geocoding and nearby landmarks, and the rules for which name to use: a named place, the neighborhood from the short address, a nearby landmark, then the city. Uses only MapKit's current address types, not the deprecated placemark |
+| `PhotoDetailsReader` | nonisolated; `load` and `preview` are `@concurrent` | EXIF, TIFF and GPS metadata, and the upright 1568 px copy the models see |
+| `LocationNamer` | nonisolated | MapKit reverse geocoding and nearby landmarks, and the rules for which name to use: a named place, the neighborhood from the short address, a nearby landmark, then the city. Uses only MapKit's current address types, not the deprecated placemark |
 | `PlaceLookups` | actor | Spacing MapKit requests 1.2 seconds apart, caching names for nearby spots (about 100 m) so a burst of photos from one place costs one lookup, and pausing once when MapKit throttles |
-| `ImageAnalyzer` | — | Vision scene labels and text recognition, the on-device alt text, and the Private Cloud Compute draft (landmark, alt text, hashtags) |
-| `AppleIntelligence` | — | Whether the on-device model can run, as one of four states, and what the alt text setting says in each |
-| `CloudModel` | — | The Private Cloud Compute model: whether it's usable (setting, availability, daily limit) and what Settings says about it |
-| `SunPosition` | — | The sun's elevation and direction from a time and place, and the light it makes: daylight, golden hour, blue hour, night |
-| `Hashtags` | — | Cleaning pasted text, suggestions, the search page address |
+| `ImageAnalyzer` | nonisolated | Vision scene labels and text recognition, the on-device alt text, and the Private Cloud Compute draft (landmark, alt text, hashtags) |
+| `AppleIntelligence` | nonisolated | Whether the on-device model can run, as one of four states, and what the alt text setting says in each |
+| `CloudModel` | nonisolated | The Private Cloud Compute model: whether it's usable (setting, availability, daily limit) and what Settings says about it |
+| `SunPosition` | nonisolated | The sun's elevation and direction from a time and place, and the light it makes: daylight, golden hour, blue hour, night |
+| `Hashtags` | nonisolated | Cleaning pasted text, suggestions, the search page address |
 | `InstagramSharer` | main actor | Handing the photo to Instagram as an `.igo` file, or the share sheet |
-| `CSVImporter` | `importPosts` on the main actor | Parsing the old sheet's CSV and matching rows to photos |
-| `AppSettings` | — | Settings keys and defaults, shared by `@AppStorage` and services |
-| `DebugOptions` | — | Launch arguments for simulator screenshots. Debug builds only |
-| `Log` | — | One `Logger` per area, under the subsystem `com.chipcressman.shutterdrop` |
+| `AppSettings` | nonisolated | Settings keys and defaults, shared by `@AppStorage` and services |
+| `DebugOptions` | nonisolated | Launch arguments for simulator screenshots. Debug builds only |
+| `Log` | nonisolated | One `Logger` per area, under the subsystem `com.chipcressman.shutterdrop` |
 
 ## Rules that hold everywhere
 

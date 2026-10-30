@@ -4,11 +4,11 @@ Releases go to the App Store, built and uploaded entirely in Xcode. Only the mai
 
 ## Once
 
-- **Signing:** `app/Signing.local.xcconfig` with the team ID (see CONTRIBUTING.md). Xcode manages the certificates and profiles.
+- **Signing:** automatic, with the team set in the ShutterDrop target. Xcode manages the certificates and profiles.
 - **App Store Connect:** the app record exists, named ShutterDrop with the bundle ID `com.chipcressman.shutterdrop`.
 - **Privacy policy:** live at https://cressmancm.github.io/ShutterDropApp/privacy/ from `docs/privacy`, with GitHub Pages serving the `docs` folder of `main`.
 - **App Privacy label:** Data Not Collected. Private Cloud Compute doesn't change this: the photo goes to Apple to answer the request and isn't stored, and ShutterDrop never receives it. Recheck against Apple's guidance when submitting.
-- **Private Cloud Compute:** requested on Apple's [Accessing Private Cloud Compute](https://developer.apple.com/private-cloud-compute/) page; it needs the App Store Small Business Program and fewer than 2 million first-time downloads. Once Apple assigns it to the account, uncomment the two Private Cloud Compute lines in `app/Signing.local.xcconfig` (see the `.example`): they sign with `app/ShutterDrop.entitlements` (`com.apple.developer.private-cloud-compute`) and compile in the code that calls the model. Without the entitlement, calling the model crashes the app, which is why builds leave it out by default. Test with a debug build on an iPhone, TestFlight or ad hoc; those installs don't count toward the limit.
+- **Private Cloud Compute:** requested on Apple's [Accessing Private Cloud Compute](https://developer.apple.com/private-cloud-compute/) page; it needs the App Store Small Business Program and fewer than 2 million first-time downloads. Once Apple assigns it to the account, set two build settings on the ShutterDrop target: Code Signing Entitlements (`CODE_SIGN_ENTITLEMENTS`) to `ShutterDrop/ShutterDrop.entitlements` (`com.apple.developer.private-cloud-compute`), and add `PRIVATE_CLOUD_COMPUTE` to Active Compilation Conditions (`SWIFT_ACTIVE_COMPILATION_CONDITIONS`), which compiles in the code that calls the model. Without the entitlement, calling the model crashes the app, which is why builds leave it out by default. Test with a debug build on an iPhone, TestFlight or ad hoc; those installs don't count toward the limit.
 
 ## Each release
 

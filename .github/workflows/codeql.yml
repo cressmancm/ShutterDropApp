@@ -51,7 +51,7 @@ jobs:
           pinned="/Applications/Xcode_$(cat .xcode-version).app"
           if [[ -d "$pinned" ]]; then sudo xcode-select -s "$pinned"; fi
           xcodebuild -version
-          xcodebuild -project app/ShutterDrop.xcodeproj -scheme ShutterDrop \
+          xcodebuild -project ShutterDrop.xcodeproj -scheme ShutterDrop \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" \
             CODE_SIGNING_ALLOWED=NO build
