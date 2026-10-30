@@ -229,20 +229,28 @@ private struct Header: View {
     let title: String
     let message: String
     var large = false
+    /// About the height of a large title, and grows with Dynamic Type.
+    @ScaledMetric(relativeTo: .largeTitle) private var wordmarkHeight: CGFloat = 32
 
     var body: some View {
         VStack(spacing: 16) {
             if large {
                 AppLogo()
+                Image(.wordmark)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: wordmarkHeight)
+                    .accessibilityLabel(title)
+                    .accessibilityAddTraits(.isHeader)
             } else {
                 Image(systemName: systemImage)
                     .font(.system(size: 40, weight: .light))
                     .foregroundStyle(Palette.accent)
                     .frame(width: 80, height: 80)
                     .background(Palette.accent.opacity(0.16), in: .rect(cornerRadius: 20))
+                Text(title)
+                    .font(.title.bold())
             }
-            Text(title)
-                .font(large ? .largeTitle.bold() : .title.bold())
             Text(message)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Palette.secondaryText)
