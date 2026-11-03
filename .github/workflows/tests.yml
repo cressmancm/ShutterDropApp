@@ -17,7 +17,7 @@ permissions:
 jobs:
   test:
     runs-on: xcode-27
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -38,9 +38,38 @@ jobs:
             exit 1
           fi
 
+      - name: Boot the simulator
+        # The runner's first simulator boot is slow. Booting before the tests,
+        # and running them all on this one simulator rather than a clone per
+        # test target, keeps the UI test's launch inside its timeouts. Takes
+        # the iPhone 17 on the newest iOS, since older runtimes are below
+        # ShutterDrop's minimum.
+        run: |
+          udid="$(xcrun simctl list devices available \
+            | awk '/^-- iOS /{ios=1; next} /^-- /{ios=0} ios && /^ +iPhone 17 \(/{line=$0} END{print line}' \
+            | grep -oE '[0-9A-F-]{36}')"
+          if [[ -z "$udid" ]]; then
+            echo "::error::No iPhone 17 simulator on this runner"
+            exit 1
+          fi
+          echo "SIMULATOR=$udid" >> "$GITHUB_ENV"
+          xcrun simctl boot "$udid"
+          xcrun simctl bootstatus "$udid" -b
+
       - name: Build and test
         # Simulator builds need no signing certificate.
         run: >-
           xcodebuild -project ShutterDrop.xcodeproj -scheme ShutterDrop
-          -destination 'platform=iOS Simulator,name=iPhone 17'
-          -derivedDataPath "$RUNNER_TEMP/DerivedData" test
+          -destination "platform=iOS Simulator,id=$SIMULATOR"
+          -parallel-testing-enabled NO
+          -derivedDataPath "$RUNNER_TEMP/DerivedData"
+          -resultBundlePath "$RUNNER_TEMP/Tests.xcresult" test
+
+      - name: Keep the test results
+        # The log names a failing test but not why; the result bundle has the
+        # failure message and screenshots.
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results
+          path: ${{ runner.temp }}/Tests.xcresult
