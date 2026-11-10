@@ -68,12 +68,12 @@ struct HashtagsTests {
         #expect(Hashtags.searchTerm(location: "", sceneLabels: []) == "")
     }
 
-    @Test("The search page fills in {query}")
+    @Test("The search page is on best-hashtags.com")
     func searchURL() {
-        #expect(Hashtags.searchURL(site: AppSettings.defaultHashtagSearchSite, term: "#puertovallarta")?.absoluteString == "https://best-hashtags.com/hashtag/puertovallarta/")
-        #expect(Hashtags.searchURL(site: "https://example.com/search?q={query}", term: "puerto vallarta")?.absoluteString == "https://example.com/search?q=puerto%20vallarta")
-        #expect(Hashtags.searchURL(site: "javascript:{query}", term: "x") == nil)
-        #expect(Hashtags.searchURL(site: AppSettings.defaultHashtagSearchSite, term: "  ") == nil)
+        #expect(Hashtags.searchURL(term: "#puertovallarta")?.absoluteString == "https://best-hashtags.com/hashtag/puertovallarta/")
+        #expect(Hashtags.searchURL(term: "puerto vallarta")?.absoluteString == "https://best-hashtags.com/hashtag/puerto%20vallarta/")
+        #expect(Hashtags.searchURL(term: "a/b?c")?.absoluteString == "https://best-hashtags.com/hashtag/a%2Fb%3Fc/")
+        #expect(Hashtags.searchURL(term: "  ") == nil)
     }
 }
 

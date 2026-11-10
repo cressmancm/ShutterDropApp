@@ -122,14 +122,13 @@ nonisolated enum Hashtags {
         return sceneLabels.first.flatMap { tag(from: $0) }.map { String($0.dropFirst()) } ?? ""
     }
 
-    /// The search page for `term`, from a site address with a {query} tag.
-    static func searchURL(site: String, term: String) -> URL? {
+    /// The best-hashtags.com page for `term`, the site the old ShutterDrop
+    /// skill used. It's fixed so the in-app browser opens only that site.
+    static func searchURL(term: String) -> URL? {
         let term = term.trimmed.replacingOccurrences(of: "#", with: "")
         guard !term.isEmpty,
               let encoded = term.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed.subtracting(CharacterSet(charactersIn: "/?&=")))
         else { return nil }
-        let address = site.contains("{query}") ? site.replacingOccurrences(of: "{query}", with: encoded) : site + encoded
-        guard let url = URL(string: address), url.scheme == "https" || url.scheme == "http" else { return nil }
-        return url
+        return URL(string: "https://best-hashtags.com/hashtag/\(encoded)/")
     }
 }

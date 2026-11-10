@@ -10,7 +10,6 @@ struct PostDetailView: View {
     @Environment(\.modelContext) private var context
     @Environment(Intake.self) private var intake
     @AppStorage(AppSettings.postTemplate) private var template = PostTemplate.defaultText
-    @AppStorage(AppSettings.hashtagSearchSite) private var searchSite = AppSettings.defaultHashtagSearchSite
     @AppStorage(AppSettings.altTextGeneration) private var writesAltText = true
     @Environment(\.appleIntelligence) private var intelligence
     @Query private var allPosts: [Post]
@@ -119,7 +118,7 @@ struct PostDetailView: View {
             TextField("Search for", text: $searchTerm)
                 .textInputAutocapitalization(.never)
             Button("Search") {
-                if let url = Hashtags.searchURL(site: searchSite, term: searchTerm) {
+                if let url = Hashtags.searchURL(term: searchTerm) {
                     searchPage = IdentifiableURL(url: url)
                 }
             }

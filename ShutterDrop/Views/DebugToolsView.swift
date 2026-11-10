@@ -139,7 +139,7 @@ struct DebugToolsView: View {
         }
         .confirmationDialog("Reset ShutterDrop's settings?", isPresented: $confirmingReset, titleVisibility: .visible) {
             Button("Reset Settings", role: .destructive) {
-                for key in [AppSettings.postTemplate, AppSettings.locationLookups, AppSettings.hashtagSearchSite, AppSettings.altTextGeneration, AppSettings.privateCloudCompute, DebugOptions.intelligenceStateKey] {
+                for key in [AppSettings.postTemplate, AppSettings.locationLookups, AppSettings.altTextGeneration, AppSettings.privateCloudCompute, DebugOptions.intelligenceStateKey] {
                     UserDefaults.standard.removeObject(forKey: key)
                 }
             }

@@ -10,7 +10,6 @@ struct SettingsView: View {
     @AppStorage(AppSettings.privateCloudCompute) private var usesCloud = false
     @Environment(\.appleIntelligence) private var intelligence
     @Environment(\.openURL) private var openURL
-    @AppStorage(AppSettings.hashtagSearchSite) private var searchSite = AppSettings.defaultHashtagSearchSite
     @State private var showingDebugTools = DebugOptions.openDebugTools
 
     var body: some View {
@@ -67,14 +66,6 @@ struct SettingsView: View {
                         Text("Private Cloud Compute")
                     } footer: {
                         Text((CloudModel.note.map { $0 + "\n\n" } ?? "") + "Sends each new photo to Apple's larger Apple Intelligence model, which uses it only for the request and doesn't store it. It recognizes the place the photo shows, writes richer alt text and suggests hashtags. Needs a connection and has a daily limit. When off, everything stays on this iPhone.")
-                    }
-                }
-
-                Section("Hashtags") {
-                    NavigationLink {
-                        SearchSiteView(site: $searchSite)
-                    } label: {
-                        LabeledContent("Search Site", value: URL(string: searchSite.replacingOccurrences(of: "{query}", with: "q"))?.host() ?? searchSite)
                     }
                 }
 
@@ -185,43 +176,6 @@ struct TemplateEditorView: View {
             selection = TextSelection(insertionPoint: caret)
         } else {
             template += token
-        }
-    }
-}
-
-/// The hashtag search site, as an address with a {query} tag.
-struct SearchSiteView: View {
-    @Binding var site: String
-    @FocusState private var editing: Bool
-
-    var body: some View {
-        Form {
-            Group {
-            Section {
-                TextField("Address", text: $site, axis: .vertical)
-                    .focused($editing)
-                    .keyboardType(.URL)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-            } footer: {
-                Text("Put {query} where the search term goes. Search Hashtags opens this page in Safari inside ShutterDrop.")
-            }
-            Section {
-                Button("Use best-hashtags.com") { site = AppSettings.defaultHashtagSearchSite }
-            }
-            }
-            .listRowBackground(Palette.surface)
-        }
-        .scrollContentBackground(.hidden)
-        .background(Palette.background)
-        .navigationTitle("Search Site")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") { editing = false }
-                    .fontWeight(.semibold)
-            }
         }
     }
 }

@@ -25,7 +25,7 @@ ShutterDrop is free and privacy-focused, and it always will be. You can see more
 - **Helps with alt text, if you want it.** With Apple Intelligence on, ShutterDrop writes two or three sentences describing each photo for screen readers, on your iPhone. Regenerate it, edit it, or turn it off in Settings and write your own.
 - **Goes further with Private Cloud Compute, if you allow it.** Apple's larger model looks at the photo and the places nearby to recognize what it shows, writes richer alt text and suggests hashtags. It's off until you turn it on.
 - **Lays out the post your way.** One post template with `{template tags}` decides the layout of every post. A line whose tags are empty drops out, so a photo with no location simply has no 📍 line.
-- **Helps with hashtags.** Search Hashtags opens a hashtag research site inside the app. Paste what you find and ShutterDrop keeps only the #tags. Suggestions come from the place, what's in the photo, the region, golden or blue hour, and your own past tags.
+- **Helps with hashtags.** Search Hashtags opens best-hashtags.com inside the app. Paste what you find and ShutterDrop keeps only the #tags. Suggestions come from the place, what's in the photo, the region, golden or blue hour, and your own past tags.
 - **One tap to Instagram.** Copy Post puts the finished post on the clipboard. Open in Instagram copies it too, then opens Instagram's new-post screen with the photo already chosen.
 - **Keeps a queue.** Add photos to a ShutterDrop album in Photos, or pick them in the app. Mark a post as posted and it moves out of the queue.
 
@@ -49,7 +49,7 @@ ShutterDrop is free and privacy-focused, and it always will be. You can see more
 | Connection | What it sends | When |
 | --- | --- | --- |
 | Location Lookups (Apple MapKit) | The photo's GPS position, to get a place name | Only when Location Lookups is on. It's a setting, and onboarding asks first. |
-| Hashtag search site | The search term you typed | Only when you tap Search Hashtags. The site opens in Safari inside the app. |
+| Hashtag search (best-hashtags.com) | The search term you typed | Only when you tap Search Hashtags. The site opens in Safari inside the app. |
 | Open in Instagram | The photo, handed to the Instagram app on your iPhone | Only when you tap Open in Instagram. |
 
 ### Permissions

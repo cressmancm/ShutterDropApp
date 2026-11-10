@@ -4,13 +4,9 @@ import Foundation
 nonisolated enum AppSettings {
     static let postTemplate = "postTemplate"
     static let locationLookups = "locationLookups"
-    static let hashtagSearchSite = "hashtagSearchSite"
     static let onboardingDone = "onboardingDone"
     static let altTextGeneration = "altTextGeneration"
     static let privateCloudCompute = "privateCloudCompute"
-
-    /// best-hashtags.com, the site the old ShutterDrop skill used.
-    static let defaultHashtagSearchSite = "https://best-hashtags.com/hashtag/{query}/"
 
     static var template: String {
         UserDefaults.standard.string(forKey: postTemplate) ?? PostTemplate.defaultText

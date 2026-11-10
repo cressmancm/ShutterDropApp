@@ -44,7 +44,7 @@ Debug builds add **Settings › Debug Tools**, for testing and reviewing without
 - **Restart Onboarding:** runs the real onboarding again.
 - **Posts:** add sample posts, mark everything as not posted, read every photo again, or delete all posts to see the empty queue.
 - **Photos:** the current access, asking for it if it hasn't been asked, iOS Settings, syncing the album now, and adding the library's newest 10, 50 or 150 photos to the album to try a big one.
-- **Reset ShutterDrop's Settings:** the default template, search site, Location Lookups and alt text setting, and no forced state.
+- **Reset ShutterDrop's Settings:** the default template, Location Lookups and alt text setting, and no forced state.
 
 ## Logs
 
