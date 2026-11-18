@@ -26,10 +26,14 @@ nonisolated struct ImageAnalyzer {
         var light = ""
         /// "March 1, 2025"
         var date = ""
+        /// "NIKON Z 8 with NIKKOR Z 180-600mm f/5.6-6.3 VR"
+        var camera = ""
+        /// "125 ISO | 340 mm | f/6 | 1/125 s"
+        var exposure = ""
         var labels = Labels()
     }
 
-    /// What Private Cloud Compute writes for a new photo.
+    /// What Private Cloud Compute or Claude writes for a new photo.
     @Generable
     struct Draft {
         @Guide(description: "The landmark, natural feature or venue the photo shows, exactly as written in the nearby places list when one matches, or a famous name you're certain of from the photo itself. Empty when unsure.")
@@ -148,11 +152,16 @@ nonisolated struct ImageAnalyzer {
         or season. No generic tags like #photo, #photography or #instagood.
         """
 
-    static func prompt(for context: Context, includeNearby: Bool) -> String {
+    /// The details sent with the photo. Apple's models get no camera
+    /// settings, since their alt text leaves technique out; Claude's describes
+    /// lens effects, as the original skill did.
+    static func prompt(for context: Context, includeNearby: Bool, includeCamera: Bool = false) -> String {
         var lines = ["Here is the photo labeled \"photo\"."]
         if !context.place.isEmpty { lines.append("Place: \(context.place)") }
         if includeNearby, !context.city.isEmpty { lines.append("City: \(context.city)") }
         if !context.date.isEmpty { lines.append("Taken: \(context.date)") }
+        if includeCamera, !context.camera.isEmpty { lines.append("Camera: \(context.camera)") }
+        if includeCamera, !context.exposure.isEmpty { lines.append("Exposure: \(context.exposure)") }
         if !context.light.isEmpty { lines.append("Light when taken: \(context.light)") }
         if !context.labels.scene.isEmpty { lines.append("Vision sees: \(context.labels.scene.joined(separator: ", "))") }
         if !context.labels.text.isEmpty { lines.append("Text in the photo: \(context.labels.text.joined(separator: " / "))") }

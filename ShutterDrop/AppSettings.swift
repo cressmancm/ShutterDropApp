@@ -7,6 +7,9 @@ nonisolated enum AppSettings {
     static let onboardingDone = "onboardingDone"
     static let altTextGeneration = "altTextGeneration"
     static let privateCloudCompute = "privateCloudCompute"
+    static let claudeAPI = "claudeAPI"
+    /// Set when Anthropic turns the saved key away, cleared when a key is saved.
+    static let claudeKeyRejected = "claudeKeyRejected"
 
     static var template: String {
         UserDefaults.standard.string(forKey: postTemplate) ?? PostTemplate.defaultText
@@ -18,10 +21,16 @@ nonisolated enum AppSettings {
         UserDefaults.standard.object(forKey: altTextGeneration) as? Bool ?? true
     }
 
-    /// Whether ShutterDrop writes alt text right now: the user wants it and
-    /// Apple Intelligence can run, on this iPhone or on Private Cloud Compute.
+    /// Whether ShutterDrop writes alt text right now: the user wants it and a
+    /// model can run: Claude, Private Cloud Compute or this iPhone.
     static var writesAltText: Bool {
-        altTextEnabled && (AppleIntelligence.current == .ready || CloudModel.isUsable)
+        altTextEnabled && (AppleIntelligence.current == .ready || CloudModel.isUsable || ClaudeModel.isUsable)
+    }
+
+    /// Whether the user lets ShutterDrop send photos to Claude with their own
+    /// API key. Off until they turn it on.
+    static var claudeEnabled: Bool {
+        UserDefaults.standard.bool(forKey: claudeAPI)
     }
 
     /// Whether the user lets ShutterDrop send photos to Private Cloud Compute.

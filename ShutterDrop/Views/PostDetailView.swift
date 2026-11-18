@@ -72,7 +72,7 @@ struct PostDetailView: View {
                 TextField("Describe the photo for people using screen readers", text: $post.altText, axis: .vertical)
                     .lineLimit(3...8)
                     .focused($editing)
-                if writesAltText && (intelligence == .ready || CloudModel.isUsable) {
+                if writesAltText && (intelligence == .ready || CloudModel.isUsable || ClaudeModel.isUsable) {
                     Button {
                         Task {
                             regenerating = true
@@ -91,7 +91,7 @@ struct PostDetailView: View {
             } header: {
                 Text("Alt Text")
             } footer: {
-                if writesAltText && intelligence != .ready && !CloudModel.isUsable, let note = intelligence.altTextNote(enabled: true) {
+                if writesAltText && intelligence != .ready && !CloudModel.isUsable && !ClaudeModel.isUsable, let note = intelligence.altTextNote(enabled: true) {
                     Text(note)
                 }
             }

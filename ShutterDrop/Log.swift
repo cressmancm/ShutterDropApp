@@ -17,6 +17,8 @@ nonisolated enum Log {
     static let location = Logger(subsystem: subsystem, category: "Location")
     /// Vision labels and Apple Intelligence alt text.
     static let altText = Logger(subsystem: subsystem, category: "AltText")
+    /// Requests to Claude with the user's own API key.
+    static let claude = Logger(subsystem: subsystem, category: "Claude")
     /// Copying and Open in Instagram.
     static let sharing = Logger(subsystem: subsystem, category: "Sharing")
 }

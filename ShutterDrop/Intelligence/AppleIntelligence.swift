@@ -44,7 +44,12 @@ nonisolated extension AppleIntelligence {
     /// What the alt text setting can do right now, for Settings and the post
     /// screen. Nil when there's nothing to say.
     func altTextNote(enabled: Bool) -> String? {
-        switch self {
+        if enabled, ClaudeModel.isUsable {
+            return self == .ready
+                ? "Claude writes alt text, and Apple Intelligence on this iPhone when Claude can't."
+                : "Claude writes alt text when it can reach Anthropic. When it can't, you write it yourself."
+        }
+        return switch self {
         case .unsupportedDevice:
             "This iPhone doesn't support Apple Intelligence. You can still write alt text yourself."
         case .turnedOff where enabled:

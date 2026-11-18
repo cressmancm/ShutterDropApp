@@ -8,6 +8,9 @@ struct SettingsView: View {
     @AppStorage(AppSettings.locationLookups) private var lookups = true
     @AppStorage(AppSettings.altTextGeneration) private var writesAltText = true
     @AppStorage(AppSettings.privateCloudCompute) private var usesCloud = false
+    @AppStorage(AppSettings.claudeAPI) private var usesClaude = false
+    @AppStorage(AppSettings.claudeKeyRejected) private var claudeKeyRejected = false
+    @State private var hasClaudeKey = ClaudeModel.isConfigured
     @Environment(\.appleIntelligence) private var intelligence
     @Environment(\.openURL) private var openURL
     @State private var showingDebugTools = DebugOptions.openDebugTools
@@ -33,11 +36,11 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    Toggle("Write Alt Text with Apple Intelligence", isOn: Binding(
-                        get: { writesAltText && intelligence.isSupported },
+                    Toggle(claudeOn ? "Write Alt Text" : "Write Alt Text with Apple Intelligence", isOn: Binding(
+                        get: { writesAltText && (intelligence.isSupported || claudeOn) },
                         set: { writesAltText = $0 }
                     ))
-                    .disabled(!intelligence.isSupported)
+                    .disabled(!intelligence.isSupported && !claudeOn)
                     if writesAltText && intelligence == .turnedOff {
                         Button("Open Settings") {
                             if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
@@ -67,6 +70,26 @@ struct SettingsView: View {
                     } footer: {
                         Text((CloudModel.note.map { $0 + "\n\n" } ?? "") + "Sends each new photo to Apple's larger Apple Intelligence model, which uses it only for the request and doesn't store it. It recognizes the place the photo shows, writes richer alt text and suggests hashtags. Needs a connection and has a daily limit. When off, everything stays on this iPhone.")
                     }
+                }
+
+                Section {
+                    Toggle("Use Claude", isOn: Binding(
+                        get: { claudeOn },
+                        set: { usesClaude = $0 }
+                    ))
+                    .disabled(!hasClaudeKey || claudeKeyRejected)
+                    NavigationLink {
+                        ClaudeKeyView(hasKey: $hasClaudeKey)
+                    } label: {
+                        LabeledContent("API Key", value: !hasClaudeKey ? "Not Set" : claudeKeyRejected ? "Rejected" : "Saved")
+                    }
+                } header: {
+                    Text("Claude")
+                } footer: {
+                    Text((ClaudeModel.note.map { $0 + "\n\n" } ?? "") + "Sends each new photo, with its place names, nearby places and camera details, to Anthropic's Claude, which names the place it shows, writes the alt text and researches five hashtags on the web. Uses your own Anthropic API key, and Anthropic bills your account, about 15¢ a photo at today's prices. When off, or when Claude can't answer, ShutterDrop uses Apple's models.")
+                }
+                .onChange(of: usesClaude) { _, on in
+                    if on { Task { await intake.fillMissingAltText(in: context) } }
                 }
 
                 Section {
@@ -104,6 +127,53 @@ struct SettingsView: View {
             .navigationDestination(isPresented: $showingDebugTools) { DebugToolsView() }
             #endif
         }
+    }
+
+    /// Whether Claude runs: turned on, with a key Anthropic hasn't rejected.
+    private var claudeOn: Bool {
+        usesClaude && hasClaudeKey && !claudeKeyRejected
+    }
+}
+
+/// Entering, replacing or removing the Anthropic API key.
+struct ClaudeKeyView: View {
+    @Binding var hasKey: Bool
+    @State private var key = ""
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        Form {
+            Group {
+            Section {
+                SecureField(hasKey ? "Paste a new key" : "Paste your key", text: $key)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+            } footer: {
+                Text("Create a key in the Claude Console at console.anthropic.com. ShutterDrop keeps it in this iPhone's Keychain and sends it only to Anthropic.")
+            }
+            Section {
+                Button("Save Key") {
+                    ClaudeModel.saveKey(key)
+                    hasKey = true
+                    dismiss()
+                }
+                .disabled(key.trimmed.isEmpty)
+                if hasKey {
+                    Button("Remove Key", role: .destructive) {
+                        ClaudeModel.removeKey()
+                        hasKey = false
+                        dismiss()
+                    }
+                    .foregroundStyle(Palette.destructive)
+                }
+            }
+            }
+            .listRowBackground(Palette.surface)
+        }
+        .scrollContentBackground(.hidden)
+        .background(Palette.background)
+        .navigationTitle("API Key")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

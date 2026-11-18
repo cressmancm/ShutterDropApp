@@ -11,7 +11,7 @@ import SwiftData
 /// work happens elsewhere: decoding runs in `PhotoDetailsReader.load`, filename
 /// lookups in `PhotoLibrary.filename(assetID:)`, Vision and Apple
 /// Intelligence (on device or on Private Cloud Compute) in `ImageAnalyzer`,
-/// and place names in `LocationNamer`.
+/// Claude in `ClaudeModel`, and place names in `LocationNamer`.
 final class PostProcessor {
     private let library: PhotoLibrary
     private let analyzer = ImageAnalyzer()
@@ -76,7 +76,7 @@ final class PostProcessor {
         }
         let labels = await analyzer.labels(for: preview)
         let context = context(for: post, labels: labels, place: nil)
-        if let draft = await analyzer.draft(for: preview, context: context), let text = draft.altText.trimmed.nilIfEmpty {
+        if let draft = await bestDraft(for: preview, context: context)?.draft, let text = draft.altText.trimmed.nilIfEmpty {
             post.altText = text
         } else if let text = await analyzer.altText(for: preview, context: context) {
             post.altText = text
@@ -92,18 +92,24 @@ final class PostProcessor {
         }
     }
 
-    /// Fills in the alt text, and with Private Cloud Compute the place the
-    /// photo shows and hashtag ideas. Without it, the on-device model writes
-    /// the alt text and MapKit's place name stands.
+    /// Fills in the alt text, and with Claude or Private Cloud Compute the
+    /// place the photo shows and hashtags. Without them, the on-device model
+    /// writes the alt text and MapKit's place name stands.
     private func describe(_ post: Post, image: CGImage, labels: ImageAnalyzer.Labels, place: LocationNamer.Place?) async {
         let context = context(for: post, labels: labels, place: place)
-        if let draft = await analyzer.draft(for: image, context: context) {
+        if let best = await bestDraft(for: image, context: context) {
+            let draft = best.draft
             // The place comes from the photo plus MapKit, so only when the
             // user allows location lookups.
             if AppSettings.lookupsEnabled, post.latitude != nil, let landmark = draft.landmark.trimmed.nilIfEmpty {
                 post.location = LocationNamer.compose(place: landmark, city: place?.city) ?? post.location
             }
             post.suggestedHashtags = Hashtags.extract(from: draft.hashtags.joined(separator: " "))
+            // Claude researched these on the web, as the old skill did, so
+            // they go straight into the post unless it already has tags.
+            if best.fromClaude, post.hashtags.trimmed.isEmpty {
+                post.hashtags = post.suggestedHashtags.joined(separator: " ")
+            }
             if AppSettings.altTextEnabled, let text = draft.altText.trimmed.nilIfEmpty {
                 post.altText = text
             }
@@ -112,6 +118,18 @@ final class PostProcessor {
         if AppSettings.writesAltText {
             post.altText = await analyzer.altText(for: image, context: context) ?? post.altText
         }
+    }
+
+    /// Claude first when it's on, then Private Cloud Compute. Nil when neither
+    /// can run, and the on-device model takes over.
+    private func bestDraft(for image: CGImage, context: ImageAnalyzer.Context) async -> (draft: ImageAnalyzer.Draft, fromClaude: Bool)? {
+        if let draft = await ClaudeModel.draft(for: image, context: context) {
+            return (draft, true)
+        }
+        if let draft = await analyzer.draft(for: image, context: context) {
+            return (draft, false)
+        }
+        return nil
     }
 
     func imageData(for post: Post) async -> Data? {
@@ -134,6 +152,8 @@ final class PostProcessor {
             nearby: place?.nearby.map(\.line) ?? [],
             light: post.sun?.description ?? "",
             date: post.dateText,
+            camera: post.cameraLine,
+            exposure: post.exposure,
             labels: labels
         )
     }

@@ -99,5 +99,7 @@ Words already in the name, subtitle or category aren't repeated, and other apps'
 
 ## Later
 
+- **Before submitting a build with Claude:** add a short Claude paragraph to the description, recheck the App Privacy answers against Apple's guidance (photos go to Anthropic, under the user's own key, only when they turn it on), and mention in the App Review notes that Claude needs the reviewer's own API key and is off by default.
+
 - **Screenshots:** 6.9-inch iPhone screenshots, taken on a real iPhone with real photos.
 - **Build:** uploaded from Xcode when it's time to release (see RELEASING.md). Before then, add `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` to the target so uploads skip the export compliance question.
