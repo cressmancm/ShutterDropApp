@@ -4,7 +4,27 @@
 
 [![Tests](https://github.com/cressmancm/ShutterDropApp/actions/workflows/tests.yml/badge.svg)](https://github.com/cressmancm/ShutterDropApp/actions/workflows/tests.yml)
 
-**A free iPhone app that turns your photos into Instagram posts that are ready to paste.**
+**An iPhone app that turns your photos into Instagram posts that are ready to paste. Free and open source.**
+
+<!-- Screenshots go here once they're taken on a real iPhone: docs/screenshots/ -->
+
+## How it works
+
+ShutterDrop reads the camera details already saved in each photo, names the place it was taken, and lays everything out as a post you can paste into Instagram.
+
+1. **Add photos.** Put them in a ShutterDrop album in Photos, or pick them in the app.
+2. **Check the post.** ShutterDrop fills in the camera, lens, exposure, date, and place. You add the caption, alt text, and hashtags, with help if you want it.
+3. **Post it.** Copy Post puts the finished post on the clipboard. Open in Instagram copies it too, then opens Instagram's new-post screen with the photo already chosen.
+4. **Mark it as posted.** The post moves out of the queue.
+
+## Good to know
+
+- One post template with `{template tags}` sets the layout of every post. A line with nothing to fill in is left out, so a photo with no location has no 📍 line.
+- With Location Lookups on, a photo's location becomes a place name like "West Point Lighthouse, Seattle, WA". ShutterDrop doesn't show street addresses.
+- Alt text is optional. Apple Intelligence can write it on your iPhone, or you can write your own.
+- Private Cloud Compute and Claude can recognize the place in a photo, write richer alt text, and suggest hashtags. Both are off until you turn them on.
+- Claude needs your own Anthropic API key, and Anthropic bills your account.
+- Search Hashtags opens best-hashtags.com inside the app. Paste what you find and ShutterDrop keeps only the #tags.
 
 ## Why I made this
 
@@ -12,39 +32,19 @@ Every photo I post to Instagram follows the same layout: a caption, where it was
 
 My first version was a [Claude Code](https://claude.com/claude-code) skill on my Mac. It read a ShutterDrop album in Apple Photos, pulled the camera details out of each photo, looked up the place, had Claude write alt text and research hashtags, and wrote everything into a Numbers spreadsheet. It worked, but it lived on my Mac, and I post from my phone.
 
-So I rebuilt it as an iPhone app, again with Claude Code as my partner. This time it's all Apple's own tools: Apple's Vision framework looks at the photo, MapKit names the place, and Apple Intelligence can write the alt text, on the phone or, if you allow it, on Apple's Private Cloud Compute. If you'd rather have it work exactly like the original skill, you can bring your own Anthropic API key and let Claude look at the photo and research the hashtags. It was a chance to learn iOS development and agentic coding while solving a real problem of my own.
+So I rebuilt it as an iPhone app, again with Claude Code as my partner. It was a chance to learn iOS development and agentic coding while solving a real problem of my own.
 
-ShutterDrop is free and privacy-focused, and it always will be. You can see more of my work at [chipcressman.photo](https://chipcressman.photo).
+I'm Chip Cressman, an engineering leader in Seattle and a lifelong photographer. More of my work is at [chipcressman.com](https://chipcressman.com) and [chipcressman.photo](https://chipcressman.photo).
 
-<!-- Screenshots go here once they're taken on a real iPhone: docs/screenshots/ -->
+## Privacy
 
-## What it does
+I care a lot about privacy, and I build everything with that in mind. ShutterDrop has no analytics, no tracking, no ads, and no account.
 
-- **Fills in the details.** Camera, lens, ISO, focal length, aperture, shutter speed and date come straight from each photo. Missing readings are left out, never shown as zero.
-- **Names the place.** With Location Lookups on, the photo's location becomes a place name like "West Point Lighthouse, Seattle, WA", never a street address. When Vision sees a lighthouse, waterfall or bridge, ShutterDrop looks for one nearby by name.
-- **Helps with alt text, if you want it.** With Apple Intelligence on, ShutterDrop writes two or three sentences describing each photo for screen readers, on your iPhone. Regenerate it, edit it, or turn it off in Settings and write your own.
-- **Goes further with Private Cloud Compute, if you allow it.** Apple's larger model looks at the photo and the places nearby to recognize what it shows, writes richer alt text and suggests hashtags. It's off until you turn it on.
-- **Works like the original skill with Claude, if you bring a key.** Paste your own Anthropic API key in Settings and Claude looks at each new photo, names the place it shows, writes the alt text and researches five hashtags on the web. Anthropic bills your account. It's off until you turn it on.
-- **Lays out the post your way.** One post template with `{template tags}` decides the layout of every post. A line whose tags are empty drops out, so a photo with no location simply has no 📍 line.
-- **Helps with hashtags.** Search Hashtags opens best-hashtags.com inside the app. Paste what you find and ShutterDrop keeps only the #tags. Suggestions come from the place, what's in the photo, the region, golden or blue hour, and your own past tags.
-- **One tap to Instagram.** Copy Post puts the finished post on the clipboard. Open in Instagram copies it too, then opens Instagram's new-post screen with the photo already chosen.
-- **Keeps a queue.** Add photos to a ShutterDrop album in Photos, or pick them in the app. Mark a post as posted and it moves out of the queue.
+Your photos stay on your iPhone unless you choose otherwise. Vision and Apple Intelligence run on the device. A photo is sent off the phone only if you turn on Private Cloud Compute, which sends it to Apple for that one request without storing it, or Claude, which sends it to Anthropic under your own API key.
 
-## Requirements
+Your posts are stored only on your iPhone. There's no sync, backup, or export, so deleting the app deletes them.
 
-- An iPhone with iOS 27 or later.
-- For alt text written by Apple Intelligence: iPhone 15 Pro or later, with Apple Intelligence turned on. It's optional; without it you write alt text yourself, and everything else works the same.
-- For Private Cloud Compute: the same, plus a connection. Each person gets a daily limit, higher with iCloud+.
-- For Claude: your own Anthropic API key with credit, and a connection. Any iOS 27 iPhone works.
-
-## Security and privacy
-
-- **No analytics, tracking or accounts.** ShutterDrop collects nothing about you or your photos, and reports nothing to anyone, including me.
-- **No ads.** None, now or ever.
-- **Your photos stay on your iPhone unless you say otherwise.** Vision and Apple Intelligence run on the device. A photo leaves it only if you turn on Private Cloud Compute, which sends it to Apple's servers for that one request without storing it, or Claude, which sends it to Anthropic under your own API key.
-- **Generative AI is your choice.** Apple Intelligence writes alt text only if you say yes, and Private Cloud Compute and Claude are off until you turn them on.
-- **Your posts stay on your iPhone too.** There's no sync, backup or export. Deleting the app deletes them.
-- **Open source.** Every line of ShutterDrop is in this repository.
+The code is all here if you want to check for yourself, and the [privacy policy](https://cressmancm.github.io/ShutterDropApp/privacy/) says the same in full.
 
 ### What leaves the iPhone, and when
 
@@ -61,20 +61,30 @@ ShutterDrop is free and privacy-focused, and it always will be. You can see more
 | --- | --- |
 | **Full photo library access** | To read the ShutterDrop album, create it if it's missing, and take photos out of it when you remove them from the queue. Optional: without it, you can still add photos one at a time with the photo picker. |
 
-ShutterDrop never asks for Location Services. Place names come from the location already saved in each photo.
+ShutterDrop doesn't ask for Location Services. Place names come from the location already saved in each photo.
 
-The [privacy policy](https://cressmancm.github.io/ShutterDropApp/privacy/) says the same in full.
+## Requirements
 
-## How it works
+- An iPhone with iOS 27 or later.
+- For alt text written by Apple Intelligence: iPhone 15 Pro or later, with Apple Intelligence turned on.
+- For Private Cloud Compute: the same, plus a connection. Each person gets a daily limit, higher with iCloud+.
+- For Claude: your own Anthropic API key with credit, and a connection. Any iOS 27 iPhone works.
+
+## Support
+
+If something isn't working, please let me know by [opening an issue](../../issues). It helps to include your iPhone model, your iOS version, and any other helpful information.
+
+## Under the hood
 
 ShutterDrop is a SwiftUI app with no third-party code.
 
-- **Photos** (PhotoKit, ImageIO): reads the ShutterDrop album each time the app opens, and the camera details from each photo's metadata, downloading originals from iCloud when needed.
+- **Photos** (PhotoKit, ImageIO): reads the ShutterDrop album each time the app opens, and the camera details from each photo's metadata, downloading originals from iCloud when needed. Readings a photo doesn't have are left out, not shown as zero.
 - **Place names** (MapKit, Vision): reverse geocoding plus nearby points of interest, picked in order: a nearby place whose name matches what Vision sees (West Point Lighthouse for a lighthouse), a named place like Pike Place Market, the neighborhood, a landmark near the photo, then the city.
-- **Seeing the photo** (Vision, Foundation Models): Vision names what's in the photo and reads any text in it; Apple's on-device model writes the alt text from the photo itself.
+- **Seeing the photo** (Vision, Foundation Models): Vision names what's in the photo and reads any text in it. Apple's on-device model writes two or three sentences of alt text from the photo itself.
 - **Private Cloud Compute** (Foundation Models): when allowed, Apple's server model gets the photo, the nearby places and the light, picks the place it shows, and writes alt text and hashtag ideas as structured output. If it can't run, the on-device path takes over.
-- **Claude** (URLSession, the Messages API): with the user's own key, kept in the Keychain, Claude Sonnet 5.5 gets the photo and its details, searches the web for hashtags, and answers with one strict tool call holding the place, alt text and five hashtags. It goes first when it's on; if it can't run, Private Cloud Compute or the on-device path takes over.
+- **Claude** (URLSession, the Messages API): with your own key, kept in the Keychain, Claude Sonnet 5.5 gets the photo and its details, searches the web for hashtags, and answers with one strict tool call holding the place, alt text and five hashtags. It goes first when it's on. If it can't run, Private Cloud Compute or the on-device path takes over.
 - **The light** (no lookup): the sun's height and direction from the photo's time and GPS position tell golden hour, blue hour and midday apart, for alt text and hashtags.
+- **Hashtag suggestions**: from the place, what's in the photo, the region, golden or blue hour, and your own past tags.
 - **Posts** (SwiftData): each post keeps its details, caption, hashtags and alt text on the device.
 
 | Folder | What's in it |
@@ -89,15 +99,15 @@ Check out [ARCHITECTURE.md](ARCHITECTURE.md) for a map of the codebase.
 
 ## Building from source
 
-You'll need a Mac with Xcode 27 or later. Open `ShutterDrop.xcodeproj`, pick an iPhone simulator running iOS 27, and run the **ShutterDrop** scheme. To run on your own iPhone, pick your team in the ShutterDrop target's Signing & Capabilities.
+You need a Mac with Xcode 27 or later. Open `ShutterDrop.xcodeproj`, pick an iPhone simulator running iOS 27, and run the **ShutterDrop** scheme. To run on your own iPhone, pick your team in the ShutterDrop target's Signing & Capabilities.
 
 To run the tests: Product › Test (⌘U) in Xcode.
 
 [CONTRIBUTING.md](CONTRIBUTING.md) covers the rest, and [RELEASING.md](RELEASING.md) walks through an App Store release.
 
-## Credits
+## Built with
 
-Built with [Claude Code](https://claude.com/claude-code).
+Swift, SwiftUI, PhotoKit, Vision, MapKit, Foundation Models, SwiftData, and [Claude Code](https://claude.com/claude-code).
 
 ## License
 
